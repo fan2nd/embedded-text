@@ -127,8 +127,8 @@ where
             };
 
             let draw_pos = Point::new(
-                pen_x + ((cell.width as i32 - glyph.width as i32) / 2) + glyph.x_offset as i32,
-                pen_y + ((cell.height as i32 - glyph.height as i32) / 2) + glyph.y_offset as i32,
+                pen_x + glyph.x_offset as i32,
+                pen_y + cell.height as i32 - glyph.y_offset as i32,
             );
             draw_glyph(target, self.font_data, glyph, draw_pos, self.color)?;
             pen_x += cell.width as i32;

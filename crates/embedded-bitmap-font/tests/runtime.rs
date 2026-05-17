@@ -2,19 +2,19 @@ use embedded_bitmap_font::*;
 use embedded_graphics::{mock_display::MockDisplay, pixelcolor::BinaryColor, prelude::*};
 
 const FONT: FontData<'static> = FontData {
-    index: "AB你",
+    index: "AB你g",
     char_size: 5,
     bitmap: &BITMAP,
     glyphs: &GLYPHS,
 };
 
-const GLYPHS: [Glyph; 3] = [
+const GLYPHS: [Glyph; 4] = [
     Glyph {
         bitmap_offset: 0,
         width: 3,
         height: 5,
         x_offset: 0,
-        y_offset: 0,
+        y_offset: 5,
         x_advance: 4,
     },
     Glyph {
@@ -22,7 +22,7 @@ const GLYPHS: [Glyph; 3] = [
         width: 3,
         height: 5,
         x_offset: 0,
-        y_offset: 0,
+        y_offset: 5,
         x_advance: 4,
     },
     Glyph {
@@ -30,16 +30,25 @@ const GLYPHS: [Glyph; 3] = [
         width: 2,
         height: 5,
         x_offset: 0,
-        y_offset: 0,
+        y_offset: 5,
         x_advance: 2,
+    },
+    Glyph {
+        bitmap_offset: 6,
+        width: 1,
+        height: 1,
+        x_offset: 0,
+        y_offset: 1,
+        x_advance: 1,
     },
 ];
 
 // A: .#./#.#/###/#.#/#.#
 // B: ##./#.#/##./#.#/##.
 // 你: ##/##/##/##/## (placeholder bitmap for API test)
-const BITMAP: [u8; 6] = [
-    0b01010111, 0b11011010, 0b00110101, 0b11010111, 0b11000011, 0b11000011,
+// g: #
+const BITMAP: [u8; 7] = [
+    0b01010111, 0b11011010, 0b00110101, 0b11010111, 0b11000011, 0b11000011, 0b10000000,
 ];
 
 #[test]
@@ -80,4 +89,21 @@ fn draws_ascii_text_from_start_point() {
     text.draw(&mut display).unwrap();
 
     display.assert_pattern(&[" #    #", "# # # #", "###  ##", "# # # #", "# #  ##"]);
+}
+
+#[test]
+fn draws_glyphs_on_a_common_baseline() {
+    let mut display = MockDisplay::<BinaryColor>::new();
+    let text = DrawableText::new(
+        &FONT,
+        "Ag",
+        Point::new(0, 0),
+        Size::new(4, 5),
+        Size::new(4, 5),
+        BinaryColor::On,
+    );
+
+    text.draw(&mut display).unwrap();
+
+    display.assert_pattern(&[" #   ", "# #  ", "###  ", "# #  ", "# # #"]);
 }
