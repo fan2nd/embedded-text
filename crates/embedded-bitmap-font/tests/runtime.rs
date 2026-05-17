@@ -109,6 +109,25 @@ fn draws_glyphs_on_a_common_baseline() {
 }
 
 #[test]
+fn centers_font_design_square_inside_larger_cell() {
+    let mut display = MockDisplay::<BinaryColor>::new();
+    let text = DrawableText::new(
+        &FONT,
+        "A",
+        Point::new(0, 0),
+        Size::new(7, 7),
+        Size::new(7, 7),
+        BinaryColor::On,
+    );
+
+    text.draw(&mut display).unwrap();
+
+    display.assert_pattern(&[
+        "       ", "  #    ", " # #   ", " ###   ", " # #   ", " # #   ",
+    ]);
+}
+
+#[test]
 fn positive_y_offset_glyph_metric_moves_glyph_down() {
     const SHIFTED_FONT: FontData<'static> = FontData {
         index: "Ag",

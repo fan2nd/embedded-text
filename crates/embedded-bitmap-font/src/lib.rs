@@ -126,9 +126,17 @@ where
                 continue;
             };
 
+            let source_square_size = self.font_data.char_size as i32;
+            // Treat every generated glyph as living in the font's original
+            // `char_size x char_size` design square. Layout cells only decide
+            // where that square is placed: first center the source square in
+            // the target ASCII/CJK cell, then apply glyph metrics inside the
+            // square to get the actual bitmap origin.
+            let square_x = pen_x + (cell.width as i32 - source_square_size) / 2;
+            let square_y = pen_y + (cell.height as i32 - source_square_size) / 2;
             let draw_pos = Point::new(
-                pen_x + glyph.x_offset as i32,
-                pen_y + cell.height as i32 - glyph.y_offset as i32,
+                square_x + glyph.x_offset as i32,
+                square_y + source_square_size - glyph.y_offset as i32,
             );
             draw_glyph(target, self.font_data, glyph, draw_pos, self.color)?;
             pen_x += cell.width as i32;

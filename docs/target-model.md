@@ -45,6 +45,16 @@ Create `DrawableText` on top of `FontData`.
 
 The runtime uses ASCII/non-ASCII cell sizes to advance the pen. It should not encode layout policy inside generated font data.
 
+For each character, runtime placement is two-stage:
+
+1. Treat the original generated character space as a square `char_size × char_size` design box.
+2. Center that design box inside the target layout cell (`ascii_cell_size` or `cjk_cell_size`).
+3. Place the actual glyph bitmap inside the centered design box using glyph metrics:
+   - `x = design_box_x + glyph.x_offset`
+   - `y = design_box_y + char_size - glyph.y_offset`
+
+This keeps layout cells responsible only for pen advancement and visual centering, while glyph metrics continue to describe where the bitmap lives in the font's own square coordinate space.
+
 ## Macro/codegen responsibility
 
 Macros only create `FontData`.
