@@ -75,6 +75,73 @@ fn measures_ascii_and_cjk_cells_differently() {
 }
 
 #[test]
+fn measures_multiline_horizontal_text_by_longest_line() {
+    let text = DrawableText::new(
+        &FONT,
+        "A你\nBB",
+        Point::new(0, 0),
+        Size::new(4, 5),
+        Size::new(6, 5),
+        BinaryColor::On,
+    );
+
+    assert_eq!(text.measure(), Size::new(10, 10));
+}
+
+#[test]
+fn measures_vertical_text_by_columns() {
+    let text = VerticalDrawableText::new(
+        &FONT,
+        "A你\nBB",
+        Point::new(0, 0),
+        Size::new(4, 5),
+        Size::new(6, 5),
+        BinaryColor::On,
+    );
+
+    assert_eq!(text.measure(), Size::new(10, 10));
+}
+
+#[test]
+fn draws_vertical_text_top_to_bottom_then_left_to_right() {
+    let mut display = MockDisplay::<BinaryColor>::new();
+    let text = VerticalDrawableText::new(
+        &FONT,
+        "AB",
+        Point::new(0, 0),
+        Size::new(4, 5),
+        Size::new(4, 5),
+        BinaryColor::On,
+    );
+
+    text.draw(&mut display).unwrap();
+
+    display.assert_pattern(&[
+        " # ", "# #", "###", "# #", "# #", "  #", "# #", " ##", "# #", " ##",
+    ]);
+}
+
+#[test]
+fn draws_vertical_multiline_text_in_columns() {
+    let mut display = MockDisplay::<BinaryColor>::new();
+    let text = VerticalDrawableText::new(
+        &FONT,
+        "AB\nA",
+        Point::new(0, 0),
+        Size::new(4, 5),
+        Size::new(4, 5),
+        BinaryColor::On,
+    );
+
+    text.draw(&mut display).unwrap();
+
+    display.assert_pattern(&[
+        " #   # ", "# # # #", "### ###", "# # # #", "# # # #", "  #    ", "# #    ", " ##    ",
+        "# #    ", " ##    ",
+    ]);
+}
+
+#[test]
 fn draws_ascii_text_from_start_point() {
     let mut display = MockDisplay::<BinaryColor>::new();
     let text = DrawableText::new(
