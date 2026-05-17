@@ -100,25 +100,35 @@ include!(concat!(env!("OUT_DIR"), "/font.rs"));
 ## Example procedural macro use
 
 `embedded-bitmap-font-macros` starts the final API direction: font assets can be
-rasterized at compile time directly from a proc macro. The current first slice
-supports `path`, pixel `size`, and an explicit glyph string:
+rasterized at compile time directly from a proc macro. The current first slice supports `path`, pixel `size`, and an explicit glyph string.
+It also supports ASCII-style inclusive ranges and multi-size generation:
 
 ```rust
 use embedded_bitmap_font::BitmapFont;
-use embedded_bitmap_font_macros::bitmap_font;
+use embedded_bitmap_font_macros::{bitmap_font, bitmap_fonts};
 
 bitmap_font! {
     pub static FONT_12: BitmapFont<'static> = {
         path: "assets/Cubic_11.ttf",
         size: 12,
-        glyphs: "Hello Rust 你好"
+        glyphs: "Hello Rust 你好",
+        ranges: ['0'..='9']
     };
+}
+
+bitmap_fonts! {
+    path: "assets/Cubic_11.ttf",
+    glyphs: "Hello Rust 你好",
+    pub static {
+        FONT_12: BitmapFont<'static> = 12,
+        FONT_18: BitmapFont<'static> = 18,
+    }
 }
 ```
 
 ## Planned next steps
 
-1. Expand the proc macro syntax to support ranges/glyph sets and multiple sizes.
+1. Add better macro diagnostics and compile-fail coverage for missing fields / invalid ranges.
 2. Add FreeType-backed extraction in `embedded-bitmap-font-codegen`.
 3. Add fixed ASCII/non-ASCII cell sizing tests.
 4. Add robust vertical layout tests.
