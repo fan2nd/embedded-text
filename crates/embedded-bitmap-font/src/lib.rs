@@ -23,8 +23,6 @@ pub struct Glyph {
     pub x_advance: i16,
 }
 
-pub type GlyphMetrics = Glyph;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct FontData<'a> {
     pub index: &'a str,
@@ -32,8 +30,6 @@ pub struct FontData<'a> {
     pub bitmap: &'a [u8],
     pub glyphs: &'a [Glyph],
 }
-
-pub type BitmapFont<'a> = FontData<'a>;
 
 impl<'a> FontData<'a> {
     pub fn glyph(&self, ch: char) -> Option<&Glyph> {
@@ -65,8 +61,6 @@ pub struct DrawableText<'a, C: PixelColor> {
     pub start_point: Point,
     pub color: C,
 }
-
-pub type BitmapText<'a, C> = DrawableText<'a, C>;
 
 impl<'a, C: PixelColor> DrawableText<'a, C> {
     pub const fn new(

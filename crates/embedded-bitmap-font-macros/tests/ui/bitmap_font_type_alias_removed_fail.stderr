@@ -1,0 +1,5 @@
+error[E0432]: unresolved import `embedded_bitmap_font::BitmapFont`
+ --> tests/ui/bitmap_font_type_alias_removed_fail.rs:1:5
+  |
+1 | use embedded_bitmap_font::BitmapFont;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `BitmapFont` in the root

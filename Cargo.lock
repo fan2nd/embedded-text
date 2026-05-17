@@ -82,15 +82,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "embedded-bitmap-font-codegen"
-version = "0.1.0"
-
-[[package]]
 name = "embedded-bitmap-font-macros"
 version = "0.1.0"
 dependencies = [
  "embedded-bitmap-font",
- "embedded-bitmap-font-codegen",
  "fontdue",
  "proc-macro2",
  "quote",
