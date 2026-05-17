@@ -300,13 +300,14 @@ where
     // Treat every generated glyph as living in the font's original
     // `char_size x char_size` design square. Layout cells only decide
     // where that square is placed: first center the source square in
-    // the target ASCII/CJK cell, then apply glyph metrics inside the
-    // square to get the actual bitmap origin.
+    // the target ASCII/CJK cell, then apply glyph offsets inside the
+    // square to get the actual bitmap origin. `Glyph::y_offset` is a
+    // screen-space top offset here: larger values move the glyph down.
     let square_x = cell_origin.x + (cell.width as i32 - source_square_size) / 2;
     let square_y = cell_origin.y + (cell.height as i32 - source_square_size) / 2;
     let draw_pos = Point::new(
         square_x + glyph.x_offset as i32,
-        square_y + source_square_size - glyph.y_offset as i32,
+        square_y + glyph.y_offset as i32,
     );
     draw_glyph(target, font, glyph, draw_pos, color)
 }

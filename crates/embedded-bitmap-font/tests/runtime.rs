@@ -14,7 +14,7 @@ const GLYPHS: [Glyph; 4] = [
         width: 3,
         height: 5,
         x_offset: 0,
-        y_offset: 5,
+        y_offset: 0,
         x_advance: 4,
     },
     Glyph {
@@ -22,7 +22,7 @@ const GLYPHS: [Glyph; 4] = [
         width: 3,
         height: 5,
         x_offset: 0,
-        y_offset: 5,
+        y_offset: 0,
         x_advance: 4,
     },
     Glyph {
@@ -30,7 +30,7 @@ const GLYPHS: [Glyph; 4] = [
         width: 2,
         height: 5,
         x_offset: 0,
-        y_offset: 5,
+        y_offset: 0,
         x_advance: 2,
     },
     Glyph {
@@ -38,7 +38,7 @@ const GLYPHS: [Glyph; 4] = [
         width: 1,
         height: 1,
         x_offset: 0,
-        y_offset: 1,
+        y_offset: 4,
         x_advance: 1,
     },
 ];
@@ -195,7 +195,7 @@ fn centers_font_design_square_inside_larger_cell() {
 }
 
 #[test]
-fn positive_y_offset_glyph_metric_moves_glyph_down() {
+fn positive_y_offset_moves_glyph_down() {
     const SHIFTED_FONT: FontData<'static> = FontData {
         index: "Ag",
         char_size: 5,
@@ -220,5 +220,7 @@ fn positive_y_offset_glyph_metric_moves_glyph_down() {
     );
     text.draw(&mut display).unwrap();
 
-    display.assert_pattern(&[" #   ", "# #  ", "### #", "# #  ", "# #  "]);
+    display.assert_pattern(&[
+        " #   ", "# #  ", "###  ", "# #  ", "# #  ", "     ", "    #",
+    ]);
 }
