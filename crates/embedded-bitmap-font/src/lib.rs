@@ -1,10 +1,10 @@
 #![no_std]
 
 use embedded_graphics::{
+    Drawable, Pixel,
     draw_target::DrawTarget,
     geometry::{Point, Size},
     pixelcolor::PixelColor,
-    Drawable, Pixel,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

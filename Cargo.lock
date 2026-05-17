@@ -77,6 +77,7 @@ dependencies = [
 name = "embedded-bitmap-font"
 version = "0.1.0"
 dependencies = [
+ "embedded-bitmap-font-macros",
  "embedded-graphics",
 ]
 

@@ -4,11 +4,10 @@ use proc_macro::TokenStream;
 use quote::quote;
 use std::{fs, path::PathBuf};
 use syn::{
-    braced, bracketed,
+    Ident, LitChar, LitInt, LitStr, Result, Token, Type, Visibility, braced, bracketed,
     parse::{Parse, ParseStream},
     parse_macro_input,
     punctuated::Punctuated,
-    Ident, LitChar, LitInt, LitStr, Result, Token, Type, Visibility,
 };
 
 struct FontMacroInput {
@@ -171,7 +170,14 @@ fn expand_bitmap_font(input: FontMacroInput) -> syn::Result<proc_macro2::TokenSt
     let font = parse_font(&input.path, bytes)?;
     let size = input.size.base10_parse::<u16>()?;
     let glyphs = rasterize_codepoints(&font, size, input.glyphs.value().chars(), &input.ranges)?;
-    emit_font(input.vis, input.ident, input.ty, size, input.glyphs.value(), glyphs)
+    emit_font(
+        input.vis,
+        input.ident,
+        input.ty,
+        size,
+        input.glyphs.value(),
+        glyphs,
+    )
 }
 
 fn expand_bitmap_fonts(input: MultiFontInput) -> syn::Result<proc_macro2::TokenStream> {
@@ -184,10 +190,20 @@ fn expand_bitmap_fonts(input: MultiFontInput) -> syn::Result<proc_macro2::TokenS
         let glyphs = rasterize_codepoints(&font, size, input.glyphs.value().chars(), &[])?;
         let ident = spec.ident;
         let module_ident = Ident::new(
-            &format!("__embedded_bitmap_font_{}", ident.to_string().to_lowercase()),
+            &format!(
+                "__embedded_bitmap_font_{}",
+                ident.to_string().to_lowercase()
+            ),
             ident.span(),
         );
-        let font_tokens = emit_font(input.vis.clone(), ident.clone(), spec.ty, size, input.glyphs.value(), glyphs)?;
+        let font_tokens = emit_font(
+            input.vis.clone(),
+            ident.clone(),
+            spec.ty,
+            size,
+            input.glyphs.value(),
+            glyphs,
+        )?;
         output.extend(quote! {
             mod #module_ident {
                 #font_tokens
@@ -269,9 +285,12 @@ fn emit_font(
     })
     .write_rust_source()
     .map_err(|_| syn::Error::new(ident.span(), "failed to format generated font"))?;
-    let generated: proc_macro2::TokenStream = source
-        .parse()
-        .map_err(|err| syn::Error::new(ident.span(), format!("generated invalid Rust source: {err}")))?;
+    let generated: proc_macro2::TokenStream = source.parse().map_err(|err| {
+        syn::Error::new(
+            ident.span(),
+            format!("generated invalid Rust source: {err}"),
+        )
+    })?;
 
     Ok(quote! {
         const _: fn() = || {
