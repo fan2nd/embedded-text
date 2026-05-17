@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "crates/embedded-bitmap-font",
+    "crates/embedded-bitmap-font-codegen",
+]
+resolver = "2"

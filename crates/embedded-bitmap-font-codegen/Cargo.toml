@@ -1,0 +1,8 @@
+[package]
+name = "embedded-bitmap-font-codegen"
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+description = "build-time bitmap font generator for embedded-bitmap-font"
+
+[dependencies]

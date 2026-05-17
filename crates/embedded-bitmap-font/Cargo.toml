@@ -1,0 +1,12 @@
+[package]
+name = "embedded-bitmap-font"
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+description = "no_std bitmap font runtime for embedded-graphics"
+
+[dependencies]
+embedded-graphics = "0.8"
+
+[dev-dependencies]
+embedded-graphics = { version = "0.8", features = ["defmt"] }
