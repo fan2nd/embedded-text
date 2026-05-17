@@ -126,12 +126,6 @@ bitmap_fonts! {
 }
 ```
 
-There is also a small runtime demo for the new `FontData` / `DrawableText` API:
-
-```bash
-cargo run -p embedded-bitmap-font --example drawable_text_demo
-```
-
 ## Planned next steps
 
 1. Add better macro diagnostics and compile-fail coverage for missing fields / invalid ranges.
