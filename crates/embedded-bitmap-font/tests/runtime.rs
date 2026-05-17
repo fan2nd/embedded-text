@@ -109,7 +109,7 @@ fn draws_glyphs_on_a_common_baseline() {
 }
 
 #[test]
-fn larger_y_offset_moves_glyph_up() {
+fn positive_user_y_offset_moves_glyph_down() {
     const SHIFTED_FONT: FontData<'static> = FontData {
         index: "Ag",
         char_size: 5,
@@ -117,7 +117,7 @@ fn larger_y_offset_moves_glyph_up() {
         glyphs: &[
             GLYPHS[0],
             Glyph {
-                y_offset: GLYPHS[3].y_offset + 2,
+                y_offset: GLYPHS[3].y_offset - 2,
                 ..GLYPHS[3]
             },
         ],
@@ -132,8 +132,9 @@ fn larger_y_offset_moves_glyph_up() {
         Size::new(4, 5),
         BinaryColor::On,
     );
-
     text.draw(&mut display).unwrap();
 
-    display.assert_pattern(&[" #   ", "# #  ", "### #", "# #  ", "# #  "]);
+    display.assert_pattern(&[
+        " #   ", "# #  ", "###  ", "# #  ", "# #  ", "     ", "    #",
+    ]);
 }
