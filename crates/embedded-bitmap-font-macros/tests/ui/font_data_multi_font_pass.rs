@@ -23,7 +23,7 @@ fn main() {
 
     let shifted = FONT18.glyph('A').expect("shifted A exists");
     let original = font_without_offset.glyph('A').expect("original A exists");
-    assert_eq!(shifted.y_offset, original.y_offset - 9);
+    assert_eq!(shifted.y_offset, original.y_offset + 9);
 
     let negatively_shifted: FontData<'static> = font_data! {
         size: 18,
@@ -37,6 +37,6 @@ fn main() {
             .glyph('A')
             .expect("negative shifted A exists")
             .y_offset,
-        original.y_offset + 4
+        original.y_offset - 4
     );
 }

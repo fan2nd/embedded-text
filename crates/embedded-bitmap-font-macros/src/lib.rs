@@ -242,7 +242,7 @@ fn rasterize_codepoints_with_y_offset(
         .into_iter()
         .map(|codepoint| {
             let mut glyph = rasterize_glyph(font, codepoint, size as f32);
-            glyph.y_offset -= y_offset;
+            glyph.y_offset += y_offset;
             glyph
         })
         .collect()
