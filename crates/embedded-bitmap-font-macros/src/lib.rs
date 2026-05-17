@@ -5,9 +5,10 @@ use proc_macro::TokenStream;
 use quote::quote;
 use std::{collections::BTreeMap, fs, path::PathBuf};
 use syn::{
-    Ident, LitInt, LitStr, Result, Token,
+    Expr, Ident, Lit, LitInt, LitStr, Result, Token, UnOp,
     parse::{Parse, ParseStream},
     parse_macro_input,
+    spanned::Spanned,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -34,7 +35,7 @@ struct FontDataInput {
 struct FontDataBlock {
     path: LitStr,
     index: LitStr,
-    y_offset: Option<LitInt>,
+    y_offset: Option<Expr>,
 }
 
 impl Parse for FontDataInput {
@@ -133,7 +134,7 @@ fn expand_font_data(input: FontDataInput) -> syn::Result<proc_macro2::TokenStrea
 
     for block in input.blocks {
         let y_offset = match block.y_offset {
-            Some(value) => value.base10_parse::<i16>()?,
+            Some(value) => parse_y_offset(&value)?,
             None => 0,
         };
         let bytes = read_font_bytes(&block.path)?;
@@ -167,6 +168,45 @@ fn expand_font_data(input: FontDataInput) -> syn::Result<proc_macro2::TokenStrea
     }
 
     emit_font_expression(size, glyphs)
+}
+
+fn parse_y_offset(expr: &Expr) -> syn::Result<i16> {
+    match expr {
+        Expr::Lit(expr_lit) => match &expr_lit.lit {
+            Lit::Int(value) => value.base10_parse::<i16>(),
+            _ => Err(syn::Error::new(
+                expr_lit.lit.span(),
+                "y_offset must be an integer literal",
+            )),
+        },
+        Expr::Unary(expr_unary) if matches!(expr_unary.op, UnOp::Neg(_)) => {
+            match &*expr_unary.expr {
+                Expr::Lit(expr_lit) => match &expr_lit.lit {
+                    Lit::Int(value) => {
+                        let magnitude = value.base10_parse::<i16>()?;
+                        magnitude.checked_neg().ok_or_else(|| {
+                            syn::Error::new(
+                                value.span(),
+                                "y_offset is outside the supported i16 range",
+                            )
+                        })
+                    }
+                    _ => Err(syn::Error::new(
+                        expr_lit.lit.span(),
+                        "y_offset must be an integer literal",
+                    )),
+                },
+                _ => Err(syn::Error::new(
+                    expr_unary.expr.span(),
+                    "y_offset must be an integer literal",
+                )),
+            }
+        }
+        _ => Err(syn::Error::new(
+            expr.span(),
+            "y_offset must be an integer literal",
+        )),
+    }
 }
 
 fn read_font_bytes(path: &LitStr) -> syn::Result<Vec<u8>> {

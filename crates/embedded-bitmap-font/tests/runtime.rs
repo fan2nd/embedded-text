@@ -107,3 +107,33 @@ fn draws_glyphs_on_a_common_baseline() {
 
     display.assert_pattern(&[" #   ", "# #  ", "###  ", "# #  ", "# # #"]);
 }
+
+#[test]
+fn larger_y_offset_moves_glyph_up() {
+    const SHIFTED_FONT: FontData<'static> = FontData {
+        index: "Ag",
+        char_size: 5,
+        bitmap: &BITMAP,
+        glyphs: &[
+            GLYPHS[0],
+            Glyph {
+                y_offset: GLYPHS[3].y_offset + 2,
+                ..GLYPHS[3]
+            },
+        ],
+    };
+
+    let mut display = MockDisplay::<BinaryColor>::new();
+    let text = DrawableText::new(
+        &SHIFTED_FONT,
+        "Ag",
+        Point::new(0, 0),
+        Size::new(4, 5),
+        Size::new(4, 5),
+        BinaryColor::On,
+    );
+
+    text.draw(&mut display).unwrap();
+
+    display.assert_pattern(&[" #   ", "# #  ", "### #", "# #  ", "# #  "]);
+}
