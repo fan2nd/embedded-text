@@ -10,6 +10,7 @@ plus a build-time code generator:
 ```text
 crates/embedded-bitmap-font/         no_std runtime + embedded-graphics Drawable
 crates/embedded-bitmap-font-codegen/ host-side Rust source generator
+crates/embedded-bitmap-font-macros/  proc-macro front-end for compile-time font embedding
 .ref/lv_font_conv/                   reference implementation notes/code
 ```
 
@@ -96,10 +97,29 @@ Generated source can be included from a target crate with:
 include!(concat!(env!("OUT_DIR"), "/font.rs"));
 ```
 
+## Example procedural macro use
+
+`embedded-bitmap-font-macros` starts the final API direction: font assets can be
+rasterized at compile time directly from a proc macro. The current first slice
+supports `path`, pixel `size`, and an explicit glyph string:
+
+```rust
+use embedded_bitmap_font::BitmapFont;
+use embedded_bitmap_font_macros::bitmap_font;
+
+bitmap_font! {
+    pub static FONT_12: BitmapFont<'static> = {
+        path: "assets/Cubic_11.ttf",
+        size: 12,
+        glyphs: "Hello Rust 你好"
+    };
+}
+```
+
 ## Planned next steps
 
-1. Add FreeType-backed extraction in `embedded-bitmap-font-codegen`.
-2. Add `build.rs` helpers with `cargo:rerun-if-changed` support.
+1. Expand the proc macro syntax to support ranges/glyph sets and multiple sizes.
+2. Add FreeType-backed extraction in `embedded-bitmap-font-codegen`.
 3. Add fixed ASCII/non-ASCII cell sizing tests.
 4. Add robust vertical layout tests.
 5. Add 4bpp drawing semantics and optional blending strategy.

@@ -1,0 +1,20 @@
+[package]
+name = "embedded-bitmap-font-macros"
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+description = "procedural macros for embedding bitmap fonts"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+embedded-bitmap-font-codegen = { path = "../embedded-bitmap-font-codegen" }
+fontdue = "0.9"
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "2", features = ["full", "parsing"] }
+
+[dev-dependencies]
+embedded-bitmap-font = { path = "../embedded-bitmap-font" }
+trybuild = "1"

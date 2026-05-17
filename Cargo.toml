@@ -2,5 +2,6 @@
 members = [
     "crates/embedded-bitmap-font",
     "crates/embedded-bitmap-font-codegen",
+    "crates/embedded-bitmap-font-macros",
 ]
 resolver = "2"
