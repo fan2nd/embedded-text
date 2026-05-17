@@ -1,15 +1,14 @@
-//! Procedural macros for embedding bitmap fonts.
-
 use embedded_bitmap_font_codegen::{BitmapGlyph, CodegenFont, FontWriter, GlyphBitmap};
 use fontdue::{Font, FontSettings};
 use proc_macro::TokenStream;
 use quote::quote;
 use std::{fs, path::PathBuf};
 use syn::{
-    Ident, LitChar, LitInt, LitStr, Result, Token, Type, Visibility, braced, bracketed,
+    braced, bracketed,
     parse::{Parse, ParseStream},
     parse_macro_input,
     punctuated::Punctuated,
+    Ident, LitChar, LitInt, LitStr, Result, Token, Type, Visibility,
 };
 
 struct FontMacroInput {
@@ -172,8 +171,7 @@ fn expand_bitmap_font(input: FontMacroInput) -> syn::Result<proc_macro2::TokenSt
     let font = parse_font(&input.path, bytes)?;
     let size = input.size.base10_parse::<u16>()?;
     let glyphs = rasterize_codepoints(&font, size, input.glyphs.value().chars(), &input.ranges)?;
-
-    emit_font(input.vis, input.ident, input.ty, size, glyphs)
+    emit_font(input.vis, input.ident, input.ty, size, input.glyphs.value(), glyphs)
 }
 
 fn expand_bitmap_fonts(input: MultiFontInput) -> syn::Result<proc_macro2::TokenStream> {
@@ -186,16 +184,12 @@ fn expand_bitmap_fonts(input: MultiFontInput) -> syn::Result<proc_macro2::TokenS
         let glyphs = rasterize_codepoints(&font, size, input.glyphs.value().chars(), &[])?;
         let ident = spec.ident;
         let module_ident = Ident::new(
-            &format!(
-                "__embedded_bitmap_font_{}",
-                ident.to_string().to_lowercase()
-            ),
+            &format!("__embedded_bitmap_font_{}", ident.to_string().to_lowercase()),
             ident.span(),
         );
-        let font_tokens = emit_font(input.vis.clone(), ident.clone(), spec.ty, size, glyphs)?;
+        let font_tokens = emit_font(input.vis.clone(), ident.clone(), spec.ty, size, input.glyphs.value(), glyphs)?;
         output.extend(quote! {
             mod #module_ident {
-                use embedded_bitmap_font::BitmapFont;
                 #font_tokens
             }
             pub use #module_ident::#ident;
@@ -261,10 +255,12 @@ fn emit_font(
     ident: Ident,
     ty: Type,
     size: u16,
+    index: String,
     glyphs: Vec<BitmapGlyph>,
 ) -> syn::Result<proc_macro2::TokenStream> {
     let source = FontWriter::new(CodegenFont {
         ident: ident.to_string(),
+        index,
         size,
         ascent: (size as i16) - 3,
         descent: -3,
@@ -274,21 +270,14 @@ fn emit_font(
     .write_rust_source()
     .map_err(|_| syn::Error::new(ident.span(), "failed to format generated font"))?;
     let generated: proc_macro2::TokenStream = source
-        .replace("use embedded_bitmap_font::{\n    BitmapFont, BitsPerPixel, CMapEntry, GlyphMetrics,\n};\n\n", "")
         .parse()
-        .map_err(|err| {
-            syn::Error::new(
-                ident.span(),
-                format!("generated invalid Rust source: {err}"),
-            )
-        })?;
+        .map_err(|err| syn::Error::new(ident.span(), format!("generated invalid Rust source: {err}")))?;
 
     Ok(quote! {
         const _: fn() = || {
             fn _assert_type(_: &#ty) {}
             let _ = _assert_type;
         };
-        use embedded_bitmap_font::{BitsPerPixel, CMapEntry, GlyphMetrics};
         #vis #generated
     })
 }

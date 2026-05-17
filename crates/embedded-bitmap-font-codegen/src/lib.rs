@@ -19,6 +19,7 @@ pub struct BitmapGlyph {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CodegenFont {
     pub ident: String,
+    pub index: String,
     pub size: u16,
     pub ascent: i16,
     pub descent: i16,
@@ -50,48 +51,13 @@ impl FontWriter {
         }
 
         let mut source = String::new();
-        writeln!(source, "use embedded_bitmap_font::{{")?;
         writeln!(
             source,
-            "    BitmapFont, BitsPerPixel, CMapEntry, GlyphMetrics,"
+            "const GLYPHS: [embedded_bitmap_font::Glyph; {}] = [",
+            glyphs.len()
         )?;
-        writeln!(source, "}};\n")?;
-
-        writeln!(source, "const ASCII_MAP: [u16; 128] = {{")?;
-        writeln!(source, "    let mut map = [u16::MAX; 128];")?;
-        for (index, glyph) in glyphs.iter().enumerate() {
-            if glyph.codepoint.is_ascii() {
-                let escaped = glyph.codepoint.escape_default().to_string();
-                writeln!(source, "    map[b'{escaped}' as usize] = {index};")?;
-            }
-        }
-        writeln!(source, "    map")?;
-        writeln!(source, "}};\n")?;
-
-        writeln!(
-            source,
-            "const CMAP: [CMapEntry; {}] = [",
-            non_ascii_count(&glyphs)
-        )?;
-        for (index, glyph) in glyphs.iter().enumerate() {
-            if !glyph.codepoint.is_ascii() {
-                writeln!(
-                    source,
-                    "    CMapEntry {{ codepoint: '{}', glyph_index: {index} }},",
-                    glyph.codepoint.escape_default()
-                )?;
-            }
-        }
-        writeln!(source, "];\n")?;
-
-        writeln!(source, "const GLYPHS: [GlyphMetrics; {}] = [", glyphs.len())?;
         for (glyph, bitmap_offset) in metrics {
-            writeln!(source, "    GlyphMetrics {{")?;
-            writeln!(
-                source,
-                "        codepoint: '{}',",
-                glyph.codepoint.escape_default()
-            )?;
+            writeln!(source, "    embedded_bitmap_font::Glyph {{")?;
             writeln!(source, "        bitmap_offset: {bitmap_offset},")?;
             writeln!(source, "        width: {},", glyph.width)?;
             writeln!(source, "        height: {},", glyph.height)?;
@@ -108,20 +74,16 @@ impl FontWriter {
         }
         writeln!(source, "];\n")?;
 
+        let index: String = glyphs.iter().map(|glyph| glyph.codepoint).collect();
         writeln!(
             source,
-            "pub static {}: BitmapFont<'static> = BitmapFont {{",
+            "pub static {}: embedded_bitmap_font::FontData<'static> = embedded_bitmap_font::FontData {{",
             self.font.ident
         )?;
-        writeln!(source, "    size: {},", self.font.size)?;
-        writeln!(source, "    ascent: {},", self.font.ascent)?;
-        writeln!(source, "    descent: {},", self.font.descent)?;
-        writeln!(source, "    line_gap: {},", self.font.line_gap)?;
-        writeln!(source, "    bpp: BitsPerPixel::Bpp1,")?;
-        writeln!(source, "    glyphs: &GLYPHS,")?;
+        writeln!(source, "    index: {:?},", index)?;
+        writeln!(source, "    char_size: {},", self.font.size as usize)?;
         writeln!(source, "    bitmap: &BITMAP,")?;
-        writeln!(source, "    ascii_map: Some(&ASCII_MAP),")?;
-        writeln!(source, "    cmap: &CMAP,")?;
+        writeln!(source, "    glyphs: &GLYPHS,")?;
         writeln!(source, "}};")?;
 
         Ok(source)
@@ -150,11 +112,4 @@ fn pack_bpp1(pixels: &[bool], output: &mut Vec<u8>) {
     if !pixels.len().is_multiple_of(8) {
         output.push(byte);
     }
-}
-
-fn non_ascii_count(glyphs: &[BitmapGlyph]) -> usize {
-    glyphs
-        .iter()
-        .filter(|glyph| !glyph.codepoint.is_ascii())
-        .count()
 }
