@@ -71,6 +71,10 @@ impl<'a, C: PixelColor> DrawableText<'a, C> {
         cjk_cell_size: Size,
         color: C,
     ) -> Self {
+        assert!(
+            ascii_cell_size.height == cjk_cell_size.height,
+            "DrawableText ascii_cell_size and cjk_cell_size heights must match"
+        );
         Self {
             font_data,
             text,

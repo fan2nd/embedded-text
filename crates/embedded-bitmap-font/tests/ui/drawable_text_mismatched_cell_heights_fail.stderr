@@ -1,0 +1,26 @@
+error[E0080]: evaluation panicked: DrawableText ascii_cell_size and cjk_cell_size heights must match
+  --> tests/ui/drawable_text_mismatched_cell_heights_fail.rs:11:51
+   |
+11 |   const _TEXT: DrawableText<'static, BinaryColor> = DrawableText::new(
+   |  ___________________________________________________^
+12 | |     &FONT,
+13 | |     "",
+14 | |     Point::new(0, 0),
+...  |
+17 | |     BinaryColor::On,
+18 | | );
+   | |_^ evaluation of `_TEXT` failed inside this call
+   |
+note: inside `DrawableText::<'_, BinaryColor>::new`
+  --> $RUST/core/src/panic.rs
+   |
+   |           $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+   |
+  ::: src/lib.rs
+   |
+   | /         assert!(
+   | |             ascii_cell_size.height == cjk_cell_size.height,
+   | |             "DrawableText ascii_cell_size and cjk_cell_size heights must match"
+   | |         );
+   | |_________- in this macro invocation
