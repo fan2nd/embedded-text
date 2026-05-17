@@ -2,7 +2,7 @@ use embedded_bitmap_font_codegen::{BitmapGlyph, CodegenFont, FontWriter, GlyphBi
 use fontdue::{Font, FontSettings};
 use proc_macro::TokenStream;
 use quote::quote;
-use std::{fs, path::PathBuf};
+use std::{collections::BTreeMap, fs, path::PathBuf};
 use syn::{
     Ident, LitChar, LitInt, LitStr, Result, Token, Type, Visibility, braced, bracketed,
     parse::{Parse, ParseStream},
@@ -112,6 +112,17 @@ struct MultiFontSpec {
     size: LitInt,
 }
 
+struct FontDataInput {
+    size: LitInt,
+    blocks: Vec<FontDataBlock>,
+}
+
+struct FontDataBlock {
+    path: LitStr,
+    index: LitStr,
+    y_offset: Option<LitInt>,
+}
+
 impl Parse for MultiFontSpec {
     fn parse(input: ParseStream<'_>) -> Result<Self> {
         let ident = input.parse()?;
@@ -149,6 +160,86 @@ impl Parse for MultiFontInput {
     }
 }
 
+impl Parse for FontDataInput {
+    fn parse(input: ParseStream<'_>) -> Result<Self> {
+        let mut size = None;
+        let mut blocks = Vec::new();
+        let mut current: Option<FontDataBlock> = None;
+
+        while !input.is_empty() {
+            let key: Ident = input.parse()?;
+            input.parse::<Token![:]>()?;
+            match key.to_string().as_str() {
+                "size" => size = Some(input.parse()?),
+                "path" => {
+                    if let Some(block) = current.take() {
+                        blocks.push(block);
+                    }
+                    current = Some(FontDataBlock {
+                        path: input.parse()?,
+                        index: LitStr::new("", key.span()),
+                        y_offset: None,
+                    });
+                }
+                "index" => {
+                    let Some(block) = current.as_mut() else {
+                        return Err(syn::Error::new(key.span(), "index must follow path"));
+                    };
+                    if !block.index.value().is_empty() {
+                        return Err(syn::Error::new(
+                            key.span(),
+                            "duplicate index for font block",
+                        ));
+                    }
+                    block.index = input.parse()?;
+                }
+                "y_offset" => {
+                    let Some(block) = current.as_mut() else {
+                        return Err(syn::Error::new(key.span(), "y_offset must follow path"));
+                    };
+                    if block.y_offset.is_some() {
+                        return Err(syn::Error::new(
+                            key.span(),
+                            "duplicate y_offset for font block",
+                        ));
+                    }
+                    block.y_offset = Some(input.parse()?);
+                }
+                _ => {
+                    return Err(syn::Error::new(
+                        key.span(),
+                        "expected size, path, index, or y_offset",
+                    ));
+                }
+            }
+
+            if input.peek(Token![,]) {
+                input.parse::<Token![,]>()?;
+            }
+        }
+
+        if let Some(block) = current.take() {
+            blocks.push(block);
+        }
+        if blocks.is_empty() {
+            return Err(input.error("missing font block"));
+        }
+        for block in &blocks {
+            if block.index.value().is_empty() {
+                return Err(syn::Error::new(
+                    block.path.span(),
+                    "missing index for font block",
+                ));
+            }
+        }
+
+        Ok(Self {
+            size: size.ok_or_else(|| input.error("missing size"))?,
+            blocks,
+        })
+    }
+}
+
 #[proc_macro]
 pub fn bitmap_font(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as FontMacroInput);
@@ -161,6 +252,14 @@ pub fn bitmap_font(input: TokenStream) -> TokenStream {
 pub fn bitmap_fonts(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as MultiFontInput);
     expand_bitmap_fonts(input)
+        .unwrap_or_else(|err| err.to_compile_error())
+        .into()
+}
+
+#[proc_macro]
+pub fn font_data(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as FontDataInput);
+    expand_font_data(input)
         .unwrap_or_else(|err| err.to_compile_error())
         .into()
 }
@@ -215,6 +314,51 @@ fn expand_bitmap_fonts(input: MultiFontInput) -> syn::Result<proc_macro2::TokenS
     Ok(output)
 }
 
+fn expand_font_data(input: FontDataInput) -> syn::Result<proc_macro2::TokenStream> {
+    let size = input.size.base10_parse::<u16>()?;
+    let mut seen = BTreeMap::<char, LitStr>::new();
+    let mut glyphs = Vec::new();
+    let mut index = String::new();
+
+    for block in input.blocks {
+        let y_offset = match block.y_offset {
+            Some(value) => value.base10_parse::<i16>()?,
+            None => 0,
+        };
+        let bytes = read_font_bytes(&block.path)?;
+        let font = parse_font(&block.path, bytes)?;
+        let mut block_chars = Vec::new();
+
+        for ch in block.index.value().chars() {
+            if block_chars.contains(&ch) {
+                continue;
+            }
+            if let Some(first_index) = seen.get(&ch) {
+                return Err(syn::Error::new(
+                    block.index.span(),
+                    format!(
+                        "duplicate index character {ch:?}; first seen in index {:?}",
+                        first_index.value()
+                    ),
+                ));
+            }
+            seen.insert(ch, block.index.clone());
+            index.push(ch);
+            block_chars.push(ch);
+        }
+
+        glyphs.extend(rasterize_codepoints_with_y_offset(
+            &font,
+            size,
+            block_chars.into_iter(),
+            &[],
+            y_offset,
+        )?);
+    }
+
+    emit_font_expression(size, index, glyphs)
+}
+
 fn read_font_bytes(path: &LitStr) -> syn::Result<Vec<u8>> {
     let font_path = resolve_font_path(&path.value()).map_err(|message| {
         syn::Error::new(
@@ -241,6 +385,16 @@ fn rasterize_codepoints(
     chars: impl Iterator<Item = char>,
     ranges: &[GlyphRange],
 ) -> syn::Result<Vec<BitmapGlyph>> {
+    rasterize_codepoints_with_y_offset(font, size, chars, ranges, 0)
+}
+
+fn rasterize_codepoints_with_y_offset(
+    font: &Font,
+    size: u16,
+    chars: impl Iterator<Item = char>,
+    ranges: &[GlyphRange],
+    y_offset: i16,
+) -> syn::Result<Vec<BitmapGlyph>> {
     let mut codepoints: Vec<char> = chars.collect();
     for range in ranges {
         let start = range.start.value() as u32;
@@ -262,7 +416,11 @@ fn rasterize_codepoints(
     codepoints.dedup();
     Ok(codepoints
         .into_iter()
-        .map(|codepoint| rasterize_glyph(font, codepoint, size as f32))
+        .map(|codepoint| {
+            let mut glyph = rasterize_glyph(font, codepoint, size as f32);
+            glyph.y_offset += y_offset;
+            glyph
+        })
         .collect())
 }
 
@@ -299,6 +457,46 @@ fn emit_font(
         };
         #vis #generated
     })
+}
+
+fn emit_font_expression(
+    size: u16,
+    index: String,
+    glyphs: Vec<BitmapGlyph>,
+) -> syn::Result<proc_macro2::TokenStream> {
+    let source = FontWriter::new(CodegenFont {
+        ident: "FONT_DATA".into(),
+        index,
+        size,
+        ascent: (size as i16) - 3,
+        descent: -3,
+        line_gap: 2,
+        glyphs,
+    })
+    .write_rust_source()
+    .map_err(|_| syn::Error::new(input_span(), "failed to format generated font"))?;
+    let source = source
+        .replace(
+            "pub static FONT_DATA: embedded_bitmap_font::FontData<'static> = embedded_bitmap_font::FontData {",
+            "embedded_bitmap_font::FontData {",
+        )
+        .trim_end()
+        .trim_end_matches(';')
+        .to_string();
+    let generated: proc_macro2::TokenStream = source.parse().map_err(|err| {
+        syn::Error::new(
+            input_span(),
+            format!("generated invalid Rust source: {err}"),
+        )
+    })?;
+
+    Ok(quote! {{
+        #generated
+    }})
+}
+
+fn input_span() -> proc_macro2::Span {
+    proc_macro2::Span::call_site()
 }
 
 fn resolve_font_path(path: &str) -> std::result::Result<PathBuf, String> {
