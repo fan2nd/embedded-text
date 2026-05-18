@@ -241,7 +241,7 @@ fn rasterize_codepoints_with_y_offset(
     codepoints
         .into_iter()
         .map(|codepoint| {
-            let mut glyph = rasterize_glyph(font, codepoint, size as f32);
+            let mut glyph = rasterize_glyph(font, codepoint, size);
             glyph.y_offset += y_offset;
             glyph
         })
@@ -368,8 +368,8 @@ fn resolve_font_path(path: &str) -> std::result::Result<PathBuf, String> {
         })
 }
 
-fn rasterize_glyph(font: &Font, codepoint: char, px: f32) -> BitmapGlyph {
-    let (metrics, bitmap) = font.rasterize(codepoint, px);
+fn rasterize_glyph(font: &Font, codepoint: char, size: u16) -> BitmapGlyph {
+    let (metrics, bitmap) = font.rasterize(codepoint, size as f32);
     let width = metrics.width.max(1) as u16;
     let height = metrics.height.max(1) as u16;
     let pixels = if metrics.width == 0 || metrics.height == 0 {
@@ -382,9 +382,25 @@ fn rasterize_glyph(font: &Font, codepoint: char, px: f32) -> BitmapGlyph {
         codepoint,
         width,
         height,
-        x_offset: metrics.xmin as i16,
+        x_offset: centered_x_offset(size, width),
         y_offset: (metrics.height as i32 + metrics.ymin) as i16,
         x_advance: metrics.advance_width.ceil().max(width as f32) as i16,
         bitmap: GlyphBitmap::Bpp1(pixels),
+    }
+}
+
+fn centered_x_offset(design_size: u16, glyph_width: u16) -> i16 {
+    ((design_size as i32 - glyph_width as i32) / 2) as i16
+}
+
+#[cfg(test)]
+mod tests {
+    use super::centered_x_offset;
+
+    #[test]
+    fn centers_glyph_bitmap_in_design_box() {
+        assert_eq!(centered_x_offset(24, 10), 7);
+        assert_eq!(centered_x_offset(24, 24), 0);
+        assert_eq!(centered_x_offset(24, 28), -2);
     }
 }

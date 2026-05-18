@@ -1,4 +1,4 @@
-error[E0080]: evaluation panicked: DrawableText ascii_cell_size and cjk_cell_size heights must match
+error[E0080]: evaluation panicked: CellSizes ascii and cjk heights must match
   --> tests/ui/drawable_text_mismatched_cell_heights_fail.rs:11:51
    |
 11 |   const _TEXT: DrawableText<'static, BinaryColor> = DrawableText::new(
@@ -12,15 +12,15 @@ error[E0080]: evaluation panicked: DrawableText ascii_cell_size and cjk_cell_siz
    | |_^ evaluation of `_TEXT` failed inside this call
    |
 note: inside `DrawableText::<'_, BinaryColor>::new`
-  --> $RUST/core/src/panic.rs
+  --> src/text.rs
    |
-   |           $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
-   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
-   |
-  ::: src/lib.rs
+   |             CellSizes::new(ascii_cell_size, cjk_cell_size),
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: inside `CellSizes::new`
+  --> src/text.rs
    |
    | /         assert!(
-   | |             ascii_cell_size.height == cjk_cell_size.height,
-   | |             "DrawableText ascii_cell_size and cjk_cell_size heights must match"
+   | |             ascii.height == cjk.height,
+   | |             "CellSizes ascii and cjk heights must match"
    | |         );
-   | |_________- in this macro invocation
+   | |_________^ the failure occurred here

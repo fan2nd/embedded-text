@@ -16,7 +16,7 @@ const GLYPHS: [Glyph; 4] = [
         width: 3,
         height: 5,
         x_offset: 0,
-        y_offset: 0,
+        y_offset: 5,
         x_advance: 4,
     },
     Glyph {
@@ -24,7 +24,7 @@ const GLYPHS: [Glyph; 4] = [
         width: 3,
         height: 5,
         x_offset: 0,
-        y_offset: 0,
+        y_offset: 5,
         x_advance: 4,
     },
     Glyph {
@@ -32,7 +32,7 @@ const GLYPHS: [Glyph; 4] = [
         width: 2,
         height: 5,
         x_offset: 0,
-        y_offset: 0,
+        y_offset: 5,
         x_advance: 2,
     },
     Glyph {
@@ -40,7 +40,7 @@ const GLYPHS: [Glyph; 4] = [
         width: 1,
         height: 1,
         x_offset: 0,
-        y_offset: 4,
+        y_offset: 1,
         x_advance: 1,
     },
 ];
@@ -76,13 +76,11 @@ fn sample_vertical_text() -> VerticalDrawableText<'static, BinaryColor> {
 }
 
 #[test]
-fn draws_original_font_size_debug_boxes_for_each_horizontal_character() {
+fn draws_design_debug_boxes_for_each_horizontal_character() {
     let mut display = MockDisplay::<BinaryColor>::new();
     display.set_allow_overdraw(true);
 
-    sample_text()
-        .draw_original_size_debug_boxes(&mut display)
-        .unwrap();
+    sample_text().draw_design_boxes(&mut display).unwrap();
 
     display.assert_pattern(&[
         "              ",
@@ -100,13 +98,11 @@ fn draws_original_font_size_debug_boxes_for_each_horizontal_character() {
 }
 
 #[test]
-fn draws_resized_cell_debug_boxes_for_each_horizontal_character() {
+fn draws_cell_debug_boxes_for_each_horizontal_character() {
     let mut display = MockDisplay::<BinaryColor>::new();
     display.set_allow_overdraw(true);
 
-    sample_text()
-        .draw_resized_debug_boxes(&mut display)
-        .unwrap();
+    sample_text().draw_cell_boxes(&mut display).unwrap();
 
     display.assert_pattern(&[
         "             ",
@@ -124,12 +120,25 @@ fn draws_resized_cell_debug_boxes_for_each_horizontal_character() {
 }
 
 #[test]
-fn draws_original_font_size_debug_boxes_for_each_vertical_character() {
+fn draws_glyph_debug_boxes_for_each_horizontal_character() {
+    let mut display = MockDisplay::<BinaryColor>::new();
+    display.set_allow_overdraw(true);
+
+    sample_text().draw_glyph_boxes(&mut display).unwrap();
+
+    display.assert_pattern(&[
+        "       ", " ### ##", " # # ##", " # # ##", " # # ##", " ### ##", " ###   ", " # #   ",
+        " # #   ", " # #   ", " ###   ",
+    ]);
+}
+
+#[test]
+fn draws_design_debug_boxes_for_each_vertical_character() {
     let mut display = MockDisplay::<BinaryColor>::new();
     display.set_allow_overdraw(true);
 
     sample_vertical_text()
-        .draw_original_size_debug_boxes(&mut display)
+        .draw_design_boxes(&mut display)
         .unwrap();
 
     display.assert_pattern(&[
@@ -148,12 +157,12 @@ fn draws_original_font_size_debug_boxes_for_each_vertical_character() {
 }
 
 #[test]
-fn draws_resized_cell_debug_boxes_for_each_vertical_character() {
+fn draws_cell_debug_boxes_for_each_vertical_character() {
     let mut display = MockDisplay::<BinaryColor>::new();
     display.set_allow_overdraw(true);
 
     sample_vertical_text()
-        .draw_resized_debug_boxes(&mut display)
+        .draw_cell_boxes(&mut display)
         .unwrap();
 
     display.assert_pattern(&[
@@ -168,5 +177,29 @@ fn draws_resized_cell_debug_boxes_for_each_vertical_character() {
         " #    #     ",
         " #    #     ",
         " ######     ",
+    ]);
+}
+
+#[test]
+fn draws_glyph_debug_boxes_for_each_vertical_character() {
+    let mut display = MockDisplay::<BinaryColor>::new();
+    display.set_allow_overdraw(true);
+
+    sample_vertical_text()
+        .draw_glyph_boxes(&mut display)
+        .unwrap();
+
+    display.assert_pattern(&[
+        "          ",
+        " ###   ###",
+        " # #   # #",
+        " # #   # #",
+        " # #   # #",
+        " ###   ###",
+        " ##       ",
+        " ##       ",
+        " ##       ",
+        " ##       ",
+        " ##       ",
     ]);
 }

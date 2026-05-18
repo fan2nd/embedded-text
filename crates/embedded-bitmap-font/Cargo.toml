@@ -12,6 +12,6 @@ embedded-graphics = "0.8"
 debug = []
 
 [dev-dependencies]
-embedded-graphics = { version = "0.8", features = ["defmt"] }
+embedded-graphics = "0.8"
 embedded-bitmap-font-macros = { path = "../embedded-bitmap-font-macros" }
 trybuild = "1"
