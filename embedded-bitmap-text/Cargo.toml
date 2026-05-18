@@ -1,17 +1,18 @@
 [package]
-name = "embedded-bitmap-font"
+name = "embedded-bitmap-text"
 version = "0.1.0"
 edition = "2024"
 license = "MIT OR Apache-2.0"
-description = "no_std bitmap font runtime for embedded-graphics"
+description = "no_std bitmap text rendering for embedded-graphics"
+readme = "README.md"
 
 [dependencies]
 embedded-graphics = "0.8"
+embedded-bitmap-text-macros = { path = "../embedded-bitmap-text-macros" }
 
 [features]
 debug = []
 
 [dev-dependencies]
 embedded-graphics = "0.8"
-embedded-bitmap-font-macros = { path = "../embedded-bitmap-font-macros" }
 trybuild = "1"

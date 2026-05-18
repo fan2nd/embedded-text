@@ -1,5 +1,4 @@
-use embedded_bitmap_font::FontData;
-use embedded_bitmap_font_macros::font_data;
+use embedded_bitmap_text::{font_data, FontData};
 
 const _FONT18: FontData<'static> = font_data! {
     size: 18,

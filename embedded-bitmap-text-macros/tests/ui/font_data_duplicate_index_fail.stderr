@@ -1,5 +1,5 @@
 error: duplicate index character 'B'; first seen in index "AB"
- --> tests/ui/font_data_duplicate_index_fail.rs:9:12
+ --> tests/ui/font_data_duplicate_index_fail.rs:8:12
   |
-9 |     index: "BA",
+8 |     index: "BA",
   |            ^^^^

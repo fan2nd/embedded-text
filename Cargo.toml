@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "crates/embedded-bitmap-font",
-    "crates/embedded-bitmap-font-macros",
+    "embedded-bitmap-text",
+    "embedded-bitmap-text-macros",
 ]
 resolver = "2"

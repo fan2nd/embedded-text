@@ -1,4 +1,4 @@
-use embedded_bitmap_font::{DrawableText, FontData, TextStyle};
+use embedded_bitmap_text::{DrawableText, FontData, TextStyle};
 use embedded_graphics::{geometry::Size, pixelcolor::BinaryColor, prelude::Point};
 
 const FONT: FontData<'static> = FontData {

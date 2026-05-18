@@ -27,19 +27,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
-name = "embedded-bitmap-font"
+name = "embedded-bitmap-text"
 version = "0.1.0"
 dependencies = [
- "embedded-bitmap-font-macros",
+ "embedded-bitmap-text-macros",
  "embedded-graphics",
  "trybuild",
 ]
 
 [[package]]
-name = "embedded-bitmap-font-macros"
+name = "embedded-bitmap-text-macros"
 version = "0.1.0"
 dependencies = [
- "embedded-bitmap-font",
+ "embedded-bitmap-text",
  "fontdue",
  "proc-macro2",
  "quote",

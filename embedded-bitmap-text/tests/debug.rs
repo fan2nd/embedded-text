@@ -1,6 +1,6 @@
 #![cfg(feature = "debug")]
 
-use embedded_bitmap_font::*;
+use embedded_bitmap_text::*;
 use embedded_graphics::{mock_display::MockDisplay, pixelcolor::BinaryColor, prelude::*};
 
 const FONT: FontData<'static> = FontData {
