@@ -1,23 +1,16 @@
 error[E0080]: evaluation panicked: CellSizes ascii and cjk heights must match
-  --> tests/ui/drawable_text_mismatched_cell_heights_fail.rs:11:51
+  --> tests/ui/drawable_text_mismatched_cell_heights_fail.rs:14:5
    |
-11 |   const _TEXT: DrawableText<'static, BinaryColor> = DrawableText::new(
-   |  ___________________________________________________^
-12 | |     &FONT,
-13 | |     "",
-14 | |     Point::new(0, 0),
-...  |
-17 | |     BinaryColor::On,
-18 | | );
-   | |_^ evaluation of `_TEXT` failed inside this call
+14 |     TextStyle::new(BinaryColor::On).cells(Size::new(4, 8), Size::new(8, 9)),
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation of `_TEXT` failed inside this call
    |
-note: inside `DrawableText::<'_, BinaryColor>::new`
-  --> src/text.rs
+note: inside `embedded_bitmap_font::TextStyle::<BinaryColor>::cells`
+  --> src/style.rs
    |
-   |             CellSizes::new(ascii_cell_size, cjk_cell_size),
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |         self.cells = CellSizes::new(ascii, cjk);
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: inside `CellSizes::new`
-  --> src/text.rs
+  --> src/style.rs
    |
    | /         assert!(
    | |             ascii.height == cjk.height,

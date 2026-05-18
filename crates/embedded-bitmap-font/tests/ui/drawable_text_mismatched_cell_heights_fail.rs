@@ -1,4 +1,4 @@
-use embedded_bitmap_font::{DrawableText, FontData};
+use embedded_bitmap_font::{DrawableText, FontData, TextStyle};
 use embedded_graphics::{geometry::Size, pixelcolor::BinaryColor, prelude::Point};
 
 const FONT: FontData<'static> = FontData {
@@ -11,10 +11,8 @@ const FONT: FontData<'static> = FontData {
 const _TEXT: DrawableText<'static, BinaryColor> = DrawableText::new(
     &FONT,
     "",
-    Point::new(0, 0),
-    Size::new(4, 8),
-    Size::new(8, 9),
-    BinaryColor::On,
-);
+    TextStyle::new(BinaryColor::On).cells(Size::new(4, 8), Size::new(8, 9)),
+)
+.at(Point::new(0, 0));
 
 fn main() {}

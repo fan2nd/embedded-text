@@ -51,6 +51,10 @@ const BITMAP: [u8; 7] = [
     0b01010111, 0b11011010, 0b00110101, 0b11010111, 0b11000011, 0b11000011, 0b10000000,
 ];
 
+fn style(ascii: Size, cjk: Size) -> TextStyle<BinaryColor> {
+    TextStyle::new(BinaryColor::On).cells(ascii, cjk)
+}
+
 #[test]
 fn finds_glyph_by_index_string() {
     let glyph = FONT.glyph('A').unwrap();
@@ -61,14 +65,7 @@ fn finds_glyph_by_index_string() {
 
 #[test]
 fn measures_ascii_and_cjk_cells_differently() {
-    let text = DrawableText::new(
-        &FONT,
-        "A你B",
-        Point::new(0, 0),
-        Size::new(4, 5),
-        Size::new(6, 5),
-        BinaryColor::On,
-    );
+    let text = DrawableText::new(&FONT, "A你B", style(Size::new(4, 5), Size::new(6, 5)));
 
     let measured = text.measure();
     assert_eq!(measured, Size::new(14, 5));
@@ -76,28 +73,14 @@ fn measures_ascii_and_cjk_cells_differently() {
 
 #[test]
 fn measures_multiline_horizontal_text_by_longest_line() {
-    let text = DrawableText::new(
-        &FONT,
-        "A你\nBB",
-        Point::new(0, 0),
-        Size::new(4, 5),
-        Size::new(6, 5),
-        BinaryColor::On,
-    );
+    let text = DrawableText::new(&FONT, "A你\nBB", style(Size::new(4, 5), Size::new(6, 5)));
 
     assert_eq!(text.measure(), Size::new(10, 10));
 }
 
 #[test]
 fn measures_vertical_text_by_columns() {
-    let text = VerticalDrawableText::new(
-        &FONT,
-        "A你\nBB",
-        Point::new(0, 0),
-        Size::new(4, 5),
-        Size::new(6, 5),
-        BinaryColor::On,
-    );
+    let text = VerticalDrawableText::new(&FONT, "A你\nBB", style(Size::new(4, 5), Size::new(6, 5)));
 
     assert_eq!(text.measure(), Size::new(10, 10));
 }
@@ -105,14 +88,7 @@ fn measures_vertical_text_by_columns() {
 #[test]
 fn draws_vertical_text_top_to_bottom_then_left_to_right() {
     let mut display = MockDisplay::<BinaryColor>::new();
-    let text = VerticalDrawableText::new(
-        &FONT,
-        "AB",
-        Point::new(0, 0),
-        Size::new(4, 5),
-        Size::new(4, 5),
-        BinaryColor::On,
-    );
+    let text = VerticalDrawableText::new(&FONT, "AB", style(Size::new(4, 5), Size::new(4, 5)));
 
     text.draw(&mut display).unwrap();
 
@@ -124,14 +100,7 @@ fn draws_vertical_text_top_to_bottom_then_left_to_right() {
 #[test]
 fn draws_vertical_multiline_text_in_columns() {
     let mut display = MockDisplay::<BinaryColor>::new();
-    let text = VerticalDrawableText::new(
-        &FONT,
-        "AB\nA",
-        Point::new(0, 0),
-        Size::new(4, 5),
-        Size::new(4, 5),
-        BinaryColor::On,
-    );
+    let text = VerticalDrawableText::new(&FONT, "AB\nA", style(Size::new(4, 5), Size::new(4, 5)));
 
     text.draw(&mut display).unwrap();
 
@@ -144,14 +113,7 @@ fn draws_vertical_multiline_text_in_columns() {
 #[test]
 fn draws_ascii_text_from_start_point() {
     let mut display = MockDisplay::<BinaryColor>::new();
-    let text = DrawableText::new(
-        &FONT,
-        "AB",
-        Point::new(0, 0),
-        Size::new(4, 5),
-        Size::new(4, 5),
-        BinaryColor::On,
-    );
+    let text = DrawableText::new(&FONT, "AB", style(Size::new(4, 5), Size::new(4, 5)));
 
     text.draw(&mut display).unwrap();
 
@@ -161,14 +123,7 @@ fn draws_ascii_text_from_start_point() {
 #[test]
 fn draws_glyphs_on_a_common_baseline() {
     let mut display = MockDisplay::<BinaryColor>::new();
-    let text = DrawableText::new(
-        &FONT,
-        "Ag",
-        Point::new(0, 0),
-        Size::new(4, 5),
-        Size::new(4, 5),
-        BinaryColor::On,
-    );
+    let text = DrawableText::new(&FONT, "Ag", style(Size::new(4, 5), Size::new(4, 5)));
 
     text.draw(&mut display).unwrap();
 
@@ -178,19 +133,61 @@ fn draws_glyphs_on_a_common_baseline() {
 #[test]
 fn centers_font_design_square_inside_larger_cell() {
     let mut display = MockDisplay::<BinaryColor>::new();
-    let text = DrawableText::new(
-        &FONT,
-        "A",
-        Point::new(0, 0),
-        Size::new(7, 7),
-        Size::new(7, 7),
-        BinaryColor::On,
-    );
+    let text = DrawableText::new(&FONT, "A", style(Size::new(7, 7), Size::new(7, 7)));
 
     text.draw(&mut display).unwrap();
 
     display.assert_pattern(&[
         "       ", "  #    ", " # #   ", " ###   ", " # #   ", " # #   ",
+    ]);
+}
+
+#[test]
+fn aligns_horizontal_text_design_square_to_top_left() {
+    let mut display = MockDisplay::<BinaryColor>::new();
+    let text = DrawableText::new(
+        &FONT,
+        "A",
+        style(Size::new(7, 7), Size::new(7, 7)).align(Alignment::TOP_LEFT),
+    )
+    .at(Point::new(0, 0));
+
+    text.draw(&mut display).unwrap();
+
+    display.assert_pattern(&[" #     ", "# #    ", "###    ", "# #    ", "# #    "]);
+}
+
+#[test]
+fn aligns_horizontal_text_design_square_to_bottom_right() {
+    let mut display = MockDisplay::<BinaryColor>::new();
+    let text = DrawableText::new(
+        &FONT,
+        "A",
+        style(Size::new(7, 7), Size::new(7, 7)).align(Alignment::BOTTOM_RIGHT),
+    )
+    .at(Point::new(0, 0));
+
+    text.draw(&mut display).unwrap();
+
+    display.assert_pattern(&[
+        "       ", "       ", "   #   ", "  # #  ", "  ###  ", "  # #  ", "  # #  ",
+    ]);
+}
+
+#[test]
+fn aligns_vertical_text_design_square_to_bottom_right() {
+    let mut display = MockDisplay::<BinaryColor>::new();
+    let text = VerticalDrawableText::new(
+        &FONT,
+        "A",
+        style(Size::new(7, 7), Size::new(7, 7)).align(Alignment::BOTTOM_RIGHT),
+    )
+    .at(Point::new(0, 0));
+
+    text.draw(&mut display).unwrap();
+
+    display.assert_pattern(&[
+        "       ", "       ", "   #   ", "  # #  ", "  ###  ", "  # #  ", "  # #  ",
     ]);
 }
 
@@ -210,14 +207,7 @@ fn positive_y_offset_moves_glyph_up() {
     };
 
     let mut display = MockDisplay::<BinaryColor>::new();
-    let text = DrawableText::new(
-        &SHIFTED_FONT,
-        "Ag",
-        Point::new(0, 0),
-        Size::new(4, 5),
-        Size::new(4, 5),
-        BinaryColor::On,
-    );
+    let text = DrawableText::new(&SHIFTED_FONT, "Ag", style(Size::new(4, 5), Size::new(4, 5)));
     text.draw(&mut display).unwrap();
 
     display.assert_pattern(&[" #   ", "# #  ", "###  ", "# # #", "# #  "]);

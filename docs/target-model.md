@@ -40,6 +40,7 @@ Create `DrawableText` on top of `FontData`.
 - text to render: `&str`
 - ASCII cell size: `embedded_graphics::geometry::Size`
 - non-ASCII / Chinese cell size: `embedded_graphics::geometry::Size`
+- design-box alignment inside each layout cell: 3 horizontal positions times 3 vertical positions
 - render start point: `embedded_graphics::geometry::Point`
 - foreground color
 
@@ -48,7 +49,7 @@ The runtime uses ASCII/non-ASCII cell sizes to advance the pen. It should not en
 For each character, runtime placement is two-stage:
 
 1. Treat the original generated character space as a square `char_size × char_size` design box.
-2. Center that design box inside the target layout cell (`ascii_cell_size` or `cjk_cell_size`).
+2. Align that design box inside the target layout cell (`ascii_cell_size` or `cjk_cell_size`). The default is center/middle.
 3. Place the actual glyph bitmap inside the centered design box using glyph metrics:
    - `x = design_box_x + glyph.x_offset`
    - `y = design_box_y + char_size - glyph.y_offset`

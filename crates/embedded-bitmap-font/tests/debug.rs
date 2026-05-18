@@ -53,26 +53,16 @@ const BITMAP: [u8; 7] = [
     0b01010111, 0b11011010, 0b00110101, 0b11010111, 0b11000011, 0b11000011, 0b10000000,
 ];
 
+fn style() -> TextStyle<BinaryColor> {
+    TextStyle::new(BinaryColor::On).cells(Size::new(4, 5), Size::new(6, 5))
+}
+
 fn sample_text() -> DrawableText<'static, BinaryColor> {
-    DrawableText::new(
-        &FONT,
-        "A你\nB",
-        Point::new(1, 1),
-        Size::new(4, 5),
-        Size::new(6, 5),
-        BinaryColor::On,
-    )
+    DrawableText::new(&FONT, "A你\nB", style()).at(Point::new(1, 1))
 }
 
 fn sample_vertical_text() -> VerticalDrawableText<'static, BinaryColor> {
-    VerticalDrawableText::new(
-        &FONT,
-        "A你\nB",
-        Point::new(1, 1),
-        Size::new(4, 5),
-        Size::new(6, 5),
-        BinaryColor::On,
-    )
+    VerticalDrawableText::new(&FONT, "A你\nB", style()).at(Point::new(1, 1))
 }
 
 #[test]

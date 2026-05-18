@@ -1,0 +1,100 @@
+use std::fmt::Write;
+
+use crate::raster::{BitmapGlyph, GlyphBitmap};
+
+pub(crate) fn font_expression(
+    size: u16,
+    mut glyphs: Vec<BitmapGlyph>,
+) -> syn::Result<proc_macro2::TokenStream> {
+    glyphs.sort_by_key(|glyph| glyph.codepoint);
+    let source = source(size, &glyphs).map_err(|err| {
+        syn::Error::new(
+            proc_macro2::Span::call_site(),
+            format!("failed to generate font data: {err}"),
+        )
+    })?;
+    source.parse().map_err(|err| {
+        syn::Error::new(
+            proc_macro2::Span::call_site(),
+            format!("generated invalid Rust source: {err}"),
+        )
+    })
+}
+
+fn source(size: u16, glyphs: &[BitmapGlyph]) -> Result<String, Box<dyn std::error::Error>> {
+    let mut bitmap = Vec::new();
+    let metrics = glyphs
+        .iter()
+        .map(|glyph| {
+            let offset = bitmap.len() as u32;
+            pack(&glyph.bitmap, &mut bitmap);
+            (glyph, offset)
+        })
+        .collect::<Vec<_>>();
+
+    let mut out = String::new();
+    write_glyphs(&mut out, &metrics)?;
+    write_bitmap(&mut out, &bitmap)?;
+    write_font(&mut out, size, glyphs)?;
+    Ok(out)
+}
+
+fn write_glyphs(out: &mut String, metrics: &[(&BitmapGlyph, u32)]) -> std::fmt::Result {
+    writeln!(
+        out,
+        "const GLYPHS: [embedded_bitmap_font::Glyph; {}] = [",
+        metrics.len()
+    )?;
+    for (glyph, bitmap_offset) in metrics {
+        writeln!(out, "    embedded_bitmap_font::Glyph {{")?;
+        writeln!(out, "        bitmap_offset: {bitmap_offset},")?;
+        writeln!(out, "        width: {},", glyph.width)?;
+        writeln!(out, "        height: {},", glyph.height)?;
+        writeln!(out, "        x_offset: {},", glyph.x_offset)?;
+        writeln!(out, "        y_offset: {},", glyph.y_offset)?;
+        writeln!(out, "        x_advance: {},", glyph.x_advance)?;
+        writeln!(out, "    }},")?;
+    }
+    writeln!(out, "];\n")
+}
+
+fn write_bitmap(out: &mut String, bitmap: &[u8]) -> std::fmt::Result {
+    writeln!(out, "const BITMAP: [u8; {}] = [", bitmap.len())?;
+    for byte in bitmap {
+        writeln!(out, "    0b{byte:08b},")?;
+    }
+    writeln!(out, "];\n")
+}
+
+fn write_font(out: &mut String, size: u16, glyphs: &[BitmapGlyph]) -> std::fmt::Result {
+    let index: String = glyphs.iter().map(|glyph| glyph.codepoint).collect();
+    writeln!(out, "embedded_bitmap_font::FontData {{")?;
+    writeln!(out, "    index: {:?},", index)?;
+    writeln!(out, "    char_size: {},", size as usize)?;
+    writeln!(out, "    bitmap: &BITMAP,")?;
+    writeln!(out, "    glyphs: &GLYPHS,")?;
+    writeln!(out, "}}")
+}
+
+fn pack(bitmap: &GlyphBitmap, out: &mut Vec<u8>) {
+    match bitmap {
+        GlyphBitmap::Bpp1(pixels) => pack_bpp1(pixels, out),
+    }
+}
+
+fn pack_bpp1(pixels: &[bool], out: &mut Vec<u8>) {
+    let mut byte = 0u8;
+    for (index, pixel) in pixels.iter().enumerate() {
+        if *pixel {
+            byte |= 1 << (7 - index % 8);
+        }
+        if index % 8 == 7 {
+            out.push(byte);
+            byte = 0;
+        }
+    }
+
+    if !pixels.len().is_multiple_of(8) {
+        out.push(byte);
+    }
+}

@@ -7,7 +7,7 @@ use embedded_graphics::{
 
 use crate::{
     DrawableText, FontData, VerticalDrawableText,
-    text::{TextRun, design_box_bounds, glyph_box_bounds},
+    layout::{TextRun, design_box_bounds, glyph_box_bounds},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -22,7 +22,7 @@ impl<'a, C: PixelColor> DrawableText<'a, C> {
     where
         D: DrawTarget<Color = C>,
     {
-        draw_text_boxes(target, self.font_data, self.run(), self.color, kind)
+        draw_text_boxes(target, self.font_data, self.run(), self.style.color, kind)
     }
 
     pub fn draw_design_boxes<D>(&self, target: &mut D) -> Result<(), D::Error>
@@ -52,7 +52,7 @@ impl<'a, C: PixelColor> VerticalDrawableText<'a, C> {
     where
         D: DrawTarget<Color = C>,
     {
-        draw_text_boxes(target, self.font_data, self.run(), self.color, kind)
+        draw_text_boxes(target, self.font_data, self.run(), self.style.color, kind)
     }
 
     pub fn draw_design_boxes<D>(&self, target: &mut D) -> Result<(), D::Error>
@@ -89,7 +89,8 @@ where
     C: PixelColor,
 {
     run.for_each_cell(|ch, cell_origin, cell| {
-        if let Some((origin, size)) = box_bounds(font, ch, cell_origin, cell, kind) {
+        if let Some((origin, size)) = box_bounds(font, ch, cell_origin, cell, run.alignment(), kind)
+        {
             draw_outline(target, origin, size, color)?;
         }
         Ok(())
@@ -101,14 +102,15 @@ fn box_bounds(
     ch: char,
     cell_origin: Point,
     cell: Size,
+    alignment: crate::Alignment,
     kind: DebugBoxKind,
 ) -> Option<(Point, Size)> {
     match kind {
-        DebugBoxKind::Design => Some(design_box_bounds(font, cell_origin, cell)),
+        DebugBoxKind::Design => Some(design_box_bounds(font, cell_origin, cell, alignment)),
         DebugBoxKind::Cell => Some((cell_origin, cell)),
         DebugBoxKind::Glyph => font
             .glyph(ch)
-            .map(|glyph| glyph_box_bounds(font, glyph, cell_origin, cell)),
+            .map(|glyph| glyph_box_bounds(font, glyph, cell_origin, cell, alignment)),
     }
 }
 
