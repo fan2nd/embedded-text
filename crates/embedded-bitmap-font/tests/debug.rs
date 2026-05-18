@@ -64,6 +64,17 @@ fn sample_text() -> DrawableText<'static, BinaryColor> {
     )
 }
 
+fn sample_vertical_text() -> VerticalDrawableText<'static, BinaryColor> {
+    VerticalDrawableText::new(
+        &FONT,
+        "A你\nB",
+        Point::new(1, 1),
+        Size::new(4, 5),
+        Size::new(6, 5),
+        BinaryColor::On,
+    )
+}
+
 #[test]
 fn draws_original_font_size_debug_boxes_for_each_horizontal_character() {
     let mut display = MockDisplay::<BinaryColor>::new();
@@ -109,5 +120,53 @@ fn draws_resized_cell_debug_boxes_for_each_horizontal_character() {
         " #  #        ",
         " #  #        ",
         " ####        ",
+    ]);
+}
+
+#[test]
+fn draws_original_font_size_debug_boxes_for_each_vertical_character() {
+    let mut display = MockDisplay::<BinaryColor>::new();
+    display.set_allow_overdraw(true);
+
+    sample_vertical_text()
+        .draw_original_size_debug_boxes(&mut display)
+        .unwrap();
+
+    display.assert_pattern(&[
+        "             ",
+        " ##### ##### ",
+        " #   # #   # ",
+        " #   # #   # ",
+        " #   # #   # ",
+        " ##### ##### ",
+        " #####       ",
+        " #   #       ",
+        " #   #       ",
+        " #   #       ",
+        " #####       ",
+    ]);
+}
+
+#[test]
+fn draws_resized_cell_debug_boxes_for_each_vertical_character() {
+    let mut display = MockDisplay::<BinaryColor>::new();
+    display.set_allow_overdraw(true);
+
+    sample_vertical_text()
+        .draw_resized_debug_boxes(&mut display)
+        .unwrap();
+
+    display.assert_pattern(&[
+        "            ",
+        " ####  #### ",
+        " #  #  #  # ",
+        " #  #  #  # ",
+        " #  #  #  # ",
+        " ####  #### ",
+        " ######     ",
+        " #    #     ",
+        " #    #     ",
+        " #    #     ",
+        " ######     ",
     ]);
 }

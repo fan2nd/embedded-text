@@ -179,6 +179,50 @@ impl<'a, C: PixelColor> VerticalDrawableText<'a, C> {
         measure_vertical(self.text, |ch| self.cell_size_for(ch))
     }
 
+    #[cfg(feature = "debug")]
+    pub fn draw_original_size_debug_boxes<D>(&self, target: &mut D) -> Result<(), D::Error>
+    where
+        D: DrawTarget<Color = C>,
+    {
+        self.draw_debug_boxes(target, DebugBoxSize::Original)
+    }
+
+    #[cfg(feature = "debug")]
+    pub fn draw_resized_debug_boxes<D>(&self, target: &mut D) -> Result<(), D::Error>
+    where
+        D: DrawTarget<Color = C>,
+    {
+        self.draw_debug_boxes(target, DebugBoxSize::Resized)
+    }
+
+    #[cfg(feature = "debug")]
+    fn draw_debug_boxes<D>(&self, target: &mut D, box_size: DebugBoxSize) -> Result<(), D::Error>
+    where
+        D: DrawTarget<Color = C>,
+    {
+        let mut pen_x = self.start_point.x;
+        let mut pen_y = self.start_point.y;
+        let mut column_width = self.ascii_cell_size.width;
+
+        for ch in self.text.chars() {
+            if ch == '\n' {
+                pen_x += column_width as i32;
+                pen_y = self.start_point.y;
+                column_width = self.ascii_cell_size.width;
+                continue;
+            }
+
+            let cell = self.cell_size_for(ch);
+            column_width = column_width.max(cell.width);
+            let cell_origin = Point::new(pen_x, pen_y);
+            let (origin, size) = debug_box_bounds(self.font_data, cell_origin, cell, box_size);
+            draw_outline(target, origin, size, self.color)?;
+            pen_y += cell.height as i32;
+        }
+
+        Ok(())
+    }
+
     fn cell_size_for(&self, ch: char) -> Size {
         if ch.is_ascii() {
             self.ascii_cell_size
