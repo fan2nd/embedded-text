@@ -28,7 +28,7 @@ Move the library toward a simple generated-data + drawable-runtime split.
 - `y_offset`
 - `x_advance`
 
-`y_offset` stays in `Glyph` because different fonts inside one size can need different vertical offsets.
+`y_offset` stays in `Glyph` because generated glyphs still need a baseline-relative top metric. Macro callers don't supply it; the macro derives a shared extra vertical offset for each font block.
 
 ## Drawable runtime object
 
@@ -59,7 +59,7 @@ This keeps layout cells responsible only for pen advancement and visual centerin
 
 Macros only create `FontData`.
 
-A macro invocation creates one size only, but may include multiple font files for the same size. Each font can provide its own y offset parameter; that offset is baked into the generated glyph data.
+A macro invocation creates one size only, but may include multiple font files for the same size. For each font block, the macro derives one shared extra vertical offset across all glyphs in that block so the block fits into the `char_size x char_size` design box when possible. Different font blocks can get different automatic offsets.
 
 Expected direction:
 
@@ -68,8 +68,8 @@ font_data! {
     pub static FONT_16: FontData<'static> = {
         size: 16,
         fonts: [
-            { path: "assets/ascii.ttf", glyphs: "ASCII...", y_offset: 0 },
-            { path: "assets/cjk.otf", glyphs: "你好世界", y_offset: -2 },
+            { path: "assets/ascii.ttf", glyphs: "ASCII..." },
+            { path: "assets/cjk.otf", glyphs: "你好世界" },
         ]
     };
 }

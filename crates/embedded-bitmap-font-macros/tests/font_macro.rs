@@ -1,7 +1,7 @@
 //! Compile-fail tests for the public font macro API.
 
 #[test]
-fn font_data_supports_multiple_font_blocks_with_y_offset() {
+fn font_data_supports_multiple_font_blocks_with_auto_y_offset() {
     let t = trybuild::TestCases::new();
     t.pass("tests/ui/font_data_multi_font_pass.rs");
 }

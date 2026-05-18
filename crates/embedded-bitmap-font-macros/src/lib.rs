@@ -5,10 +5,9 @@ use proc_macro::TokenStream;
 use quote::quote;
 use std::{collections::BTreeMap, fs, path::PathBuf};
 use syn::{
-    Expr, Ident, Lit, LitInt, LitStr, Result, Token, UnOp,
+    Ident, LitInt, LitStr, Result, Token,
     parse::{Parse, ParseStream},
     parse_macro_input,
-    spanned::Spanned,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -35,7 +34,6 @@ struct FontDataInput {
 struct FontDataBlock {
     path: LitStr,
     index: LitStr,
-    y_offset: Option<Expr>,
 }
 
 impl Parse for FontDataInput {
@@ -56,7 +54,6 @@ impl Parse for FontDataInput {
                     current = Some(FontDataBlock {
                         path: input.parse()?,
                         index: LitStr::new("", key.span()),
-                        y_offset: None,
                     });
                 }
                 "index" => {
@@ -71,23 +68,8 @@ impl Parse for FontDataInput {
                     }
                     block.index = input.parse()?;
                 }
-                "y_offset" => {
-                    let Some(block) = current.as_mut() else {
-                        return Err(syn::Error::new(key.span(), "y_offset must follow path"));
-                    };
-                    if block.y_offset.is_some() {
-                        return Err(syn::Error::new(
-                            key.span(),
-                            "duplicate y_offset for font block",
-                        ));
-                    }
-                    block.y_offset = Some(input.parse()?);
-                }
                 _ => {
-                    return Err(syn::Error::new(
-                        key.span(),
-                        "expected size, path, index, or y_offset",
-                    ));
+                    return Err(syn::Error::new(key.span(), "expected size, path, or index"));
                 }
             }
 
@@ -133,10 +115,6 @@ fn expand_font_data(input: FontDataInput) -> syn::Result<proc_macro2::TokenStrea
     let mut index = String::new();
 
     for block in input.blocks {
-        let y_offset = match block.y_offset {
-            Some(value) => parse_y_offset(&value)?,
-            None => 0,
-        };
         let bytes = read_font_bytes(&block.path)?;
         let font = parse_font(&block.path, bytes)?;
         let mut block_chars = Vec::new();
@@ -159,54 +137,10 @@ fn expand_font_data(input: FontDataInput) -> syn::Result<proc_macro2::TokenStrea
             block_chars.push(ch);
         }
 
-        glyphs.extend(rasterize_codepoints_with_y_offset(
-            &font,
-            size,
-            block_chars.into_iter(),
-            y_offset,
-        ));
+        glyphs.extend(rasterize_codepoints(&font, size, block_chars.into_iter()));
     }
 
     emit_font_expression(size, glyphs)
-}
-
-fn parse_y_offset(expr: &Expr) -> syn::Result<i16> {
-    match expr {
-        Expr::Lit(expr_lit) => match &expr_lit.lit {
-            Lit::Int(value) => value.base10_parse::<i16>(),
-            _ => Err(syn::Error::new(
-                expr_lit.lit.span(),
-                "y_offset must be an integer literal",
-            )),
-        },
-        Expr::Unary(expr_unary) if matches!(expr_unary.op, UnOp::Neg(_)) => {
-            match &*expr_unary.expr {
-                Expr::Lit(expr_lit) => match &expr_lit.lit {
-                    Lit::Int(value) => {
-                        let magnitude = value.base10_parse::<i16>()?;
-                        magnitude.checked_neg().ok_or_else(|| {
-                            syn::Error::new(
-                                value.span(),
-                                "y_offset is outside the supported i16 range",
-                            )
-                        })
-                    }
-                    _ => Err(syn::Error::new(
-                        expr_lit.lit.span(),
-                        "y_offset must be an integer literal",
-                    )),
-                },
-                _ => Err(syn::Error::new(
-                    expr_unary.expr.span(),
-                    "y_offset must be an integer literal",
-                )),
-            }
-        }
-        _ => Err(syn::Error::new(
-            expr.span(),
-            "y_offset must be an integer literal",
-        )),
-    }
 }
 
 fn read_font_bytes(path: &LitStr) -> syn::Result<Vec<u8>> {
@@ -229,23 +163,20 @@ fn parse_font(path: &LitStr, bytes: Vec<u8>) -> syn::Result<Font> {
         .map_err(|err| syn::Error::new(path.span(), format!("failed to parse font: {err}")))
 }
 
-fn rasterize_codepoints_with_y_offset(
+fn rasterize_codepoints(
     font: &Font,
     size: u16,
     chars: impl Iterator<Item = char>,
-    y_offset: i16,
 ) -> Vec<BitmapGlyph> {
     let mut codepoints: Vec<char> = chars.collect();
     codepoints.sort_unstable();
     codepoints.dedup();
-    codepoints
+    let mut glyphs: Vec<_> = codepoints
         .into_iter()
-        .map(|codepoint| {
-            let mut glyph = rasterize_glyph(font, codepoint, size);
-            glyph.y_offset += y_offset;
-            glyph
-        })
-        .collect()
+        .map(|codepoint| rasterize_glyph(font, codepoint, size))
+        .collect();
+    apply_auto_y_offset(size, &mut glyphs);
+    glyphs
 }
 
 fn emit_font_expression(
@@ -393,14 +324,90 @@ fn centered_x_offset(design_size: u16, glyph_width: u16) -> i16 {
     ((design_size as i32 - glyph_width as i32) / 2) as i16
 }
 
+fn apply_auto_y_offset(design_size: u16, glyphs: &mut [BitmapGlyph]) {
+    let delta = common_y_offset_delta(design_size, glyphs);
+    for glyph in glyphs {
+        glyph.y_offset = (glyph.y_offset as i32 + delta) as i16;
+    }
+}
+
+fn common_y_offset_delta(design_size: u16, glyphs: &[BitmapGlyph]) -> i32 {
+    let Some(first) = glyphs.first() else {
+        return 0;
+    };
+
+    let design_size = design_size as i32;
+    let first_top = glyph_top(design_size, first);
+    let first_bottom = glyph_bottom(design_size, first);
+    let mut min_top = first_top;
+    let mut max_bottom = first_bottom;
+
+    for glyph in &glyphs[1..] {
+        let top = glyph_top(design_size, glyph);
+        let bottom = glyph_bottom(design_size, glyph);
+        min_top = min_top.min(top);
+        max_bottom = max_bottom.max(bottom);
+    }
+
+    let lowest_delta_to_fit_bottom = max_bottom - design_size;
+    let highest_delta_to_fit_top = min_top;
+
+    if lowest_delta_to_fit_bottom <= highest_delta_to_fit_top {
+        0.clamp(lowest_delta_to_fit_bottom, highest_delta_to_fit_top)
+    } else {
+        (min_top + max_bottom - design_size) / 2
+    }
+}
+
+fn glyph_top(design_size: i32, glyph: &BitmapGlyph) -> i32 {
+    design_size - glyph.y_offset as i32
+}
+
+fn glyph_bottom(design_size: i32, glyph: &BitmapGlyph) -> i32 {
+    glyph_top(design_size, glyph) + glyph.height as i32
+}
+
 #[cfg(test)]
 mod tests {
-    use super::centered_x_offset;
+    use super::{BitmapGlyph, GlyphBitmap, centered_x_offset, common_y_offset_delta};
 
     #[test]
     fn centers_glyph_bitmap_in_design_box() {
         assert_eq!(centered_x_offset(24, 10), 7);
         assert_eq!(centered_x_offset(24, 24), 0);
         assert_eq!(centered_x_offset(24, 28), -2);
+    }
+
+    #[test]
+    fn keeps_glyphs_that_already_fit_in_place() {
+        let glyphs = [test_glyph(5, 10), test_glyph(4, 8)];
+
+        assert_eq!(common_y_offset_delta(12, &glyphs), 0);
+    }
+
+    #[test]
+    fn moves_font_block_down_until_top_fits() {
+        let glyphs = [test_glyph(5, 14), test_glyph(4, 12)];
+
+        assert_eq!(common_y_offset_delta(12, &glyphs), -2);
+    }
+
+    #[test]
+    fn moves_font_block_up_until_bottom_fits() {
+        let glyphs = [test_glyph(5, 3), test_glyph(4, 4)];
+
+        assert_eq!(common_y_offset_delta(12, &glyphs), 2);
+    }
+
+    fn test_glyph(height: u16, y_offset: i16) -> BitmapGlyph {
+        BitmapGlyph {
+            codepoint: 'A',
+            width: 1,
+            height,
+            x_offset: 0,
+            y_offset,
+            x_advance: 1,
+            bitmap: GlyphBitmap::Bpp1(vec![true; height as usize]),
+        }
     }
 }
