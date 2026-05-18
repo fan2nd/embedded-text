@@ -89,6 +89,50 @@ impl<'a, C: PixelColor> DrawableText<'a, C> {
         measure_horizontal(self.text, |ch| self.cell_size_for(ch))
     }
 
+    #[cfg(feature = "debug")]
+    pub fn draw_original_size_debug_boxes<D>(&self, target: &mut D) -> Result<(), D::Error>
+    where
+        D: DrawTarget<Color = C>,
+    {
+        self.draw_debug_boxes(target, DebugBoxSize::Original)
+    }
+
+    #[cfg(feature = "debug")]
+    pub fn draw_resized_debug_boxes<D>(&self, target: &mut D) -> Result<(), D::Error>
+    where
+        D: DrawTarget<Color = C>,
+    {
+        self.draw_debug_boxes(target, DebugBoxSize::Resized)
+    }
+
+    #[cfg(feature = "debug")]
+    fn draw_debug_boxes<D>(&self, target: &mut D, box_size: DebugBoxSize) -> Result<(), D::Error>
+    where
+        D: DrawTarget<Color = C>,
+    {
+        let mut pen_x = self.start_point.x;
+        let mut pen_y = self.start_point.y;
+        let mut line_height = self.ascii_cell_size.height;
+
+        for ch in self.text.chars() {
+            if ch == '\n' {
+                pen_x = self.start_point.x;
+                pen_y += line_height as i32;
+                line_height = self.ascii_cell_size.height;
+                continue;
+            }
+
+            let cell = self.cell_size_for(ch);
+            line_height = line_height.max(cell.height);
+            let cell_origin = Point::new(pen_x, pen_y);
+            let (origin, size) = debug_box_bounds(self.font_data, cell_origin, cell, box_size);
+            draw_outline(target, origin, size, self.color)?;
+            pen_x += cell.width as i32;
+        }
+
+        Ok(())
+    }
+
     fn cell_size_for(&self, ch: char) -> Size {
         if ch.is_ascii() {
             self.ascii_cell_size
@@ -282,6 +326,63 @@ fn measure_vertical(text: &str, mut cell_size_for: impl FnMut(char) -> Size) -> 
     total_width = total_width.saturating_add(column_width);
     max_height = max_height.max(column_height);
     Size::new(total_width, max_height)
+}
+
+#[cfg(feature = "debug")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum DebugBoxSize {
+    Original,
+    Resized,
+}
+
+#[cfg(feature = "debug")]
+fn debug_box_bounds(
+    font: &FontData<'_>,
+    cell_origin: Point,
+    cell: Size,
+    box_size: DebugBoxSize,
+) -> (Point, Size) {
+    match box_size {
+        DebugBoxSize::Original => {
+            let size = Size::new(font.char_size as u32, font.char_size as u32);
+            let origin = Point::new(
+                cell_origin.x + (cell.width as i32 - font.char_size as i32) / 2,
+                cell_origin.y + (cell.height as i32 - font.char_size as i32) / 2,
+            );
+            (origin, size)
+        }
+        DebugBoxSize::Resized => (cell_origin, cell),
+    }
+}
+
+#[cfg(feature = "debug")]
+fn draw_outline<D, C>(target: &mut D, origin: Point, size: Size, color: C) -> Result<(), D::Error>
+where
+    D: DrawTarget<Color = C>,
+    C: PixelColor,
+{
+    if size.width == 0 || size.height == 0 {
+        return Ok(());
+    }
+
+    let right = origin.x + size.width as i32 - 1;
+    let bottom = origin.y + size.height as i32 - 1;
+
+    for x in origin.x..=right {
+        target.draw_iter(core::iter::once(Pixel(Point::new(x, origin.y), color)))?;
+        if bottom != origin.y {
+            target.draw_iter(core::iter::once(Pixel(Point::new(x, bottom), color)))?;
+        }
+    }
+
+    for y in (origin.y + 1)..bottom {
+        target.draw_iter(core::iter::once(Pixel(Point::new(origin.x, y), color)))?;
+        if right != origin.x {
+            target.draw_iter(core::iter::once(Pixel(Point::new(right, y), color)))?;
+        }
+    }
+
+    Ok(())
 }
 
 fn draw_glyph_in_cell<D, C>(

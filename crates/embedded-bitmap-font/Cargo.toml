@@ -8,6 +8,9 @@ description = "no_std bitmap font runtime for embedded-graphics"
 [dependencies]
 embedded-graphics = "0.8"
 
+[features]
+debug = []
+
 [dev-dependencies]
 embedded-graphics = { version = "0.8", features = ["defmt"] }
 embedded-bitmap-font-macros = { path = "../embedded-bitmap-font-macros" }
