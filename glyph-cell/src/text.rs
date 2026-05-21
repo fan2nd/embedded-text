@@ -1,4 +1,4 @@
-use embedded_graphics::{
+use embedded_graphics_core::{
     Drawable, Pixel,
     draw_target::DrawTarget,
     geometry::{Point, Size},

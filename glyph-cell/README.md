@@ -1,7 +1,7 @@
 # glyph-cell
 
-`glyph-cell` is the public runtime crate. It is `no_std`, integrates
-with `embedded-graphics`, and re-exports `font_data!` from
+`glyph-cell` is the public runtime crate. It is `no_std`, targets
+`embedded-graphics-core` draw traits, and re-exports `font_data!` from
 `glyph-cell-macros`.
 
 ## API

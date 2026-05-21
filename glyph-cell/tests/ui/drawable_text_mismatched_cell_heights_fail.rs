@@ -1,5 +1,5 @@
 use glyph_cell::{DrawableText, FontData, TextStyle};
-use embedded_graphics::{geometry::Size, pixelcolor::BinaryColor, prelude::Point};
+use embedded_graphics_core::{geometry::Size, pixelcolor::BinaryColor, prelude::Point};
 
 const FONT: FontData<'static> = FontData {
     index: "",

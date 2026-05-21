@@ -1,7 +1,8 @@
 # glyph-cell
 
 `glyph-cell` is a small Rust workspace for drawing generated bitmap
-fonts with [`embedded-graphics`](https://docs.rs/embedded-graphics).
+fonts on [`embedded-graphics`](https://docs.rs/embedded-graphics) draw targets.
+The runtime crate depends only on `embedded-graphics-core`.
 
 It is split into two root-level crates:
 

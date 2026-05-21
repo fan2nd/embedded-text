@@ -1,4 +1,4 @@
-use embedded_graphics::geometry::{Point, Size};
+use embedded_graphics_core::geometry::{Point, Size};
 
 use crate::{Alignment, CellSizes, FontData, Glyph};
 

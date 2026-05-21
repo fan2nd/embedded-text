@@ -7,7 +7,7 @@ description = "no_std bitmap text rendering for embedded-graphics"
 readme = "README.md"
 
 [dependencies]
-embedded-graphics = "0.8"
+embedded-graphics-core = "0.4"
 glyph-cell-macros = { path = "../glyph-cell-macros" }
 
 [features]

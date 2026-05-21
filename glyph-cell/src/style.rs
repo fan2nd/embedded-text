@@ -1,4 +1,4 @@
-use embedded_graphics::{geometry::Size, pixelcolor::PixelColor};
+use embedded_graphics_core::{geometry::Size, pixelcolor::PixelColor};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HorizontalAlignment {
