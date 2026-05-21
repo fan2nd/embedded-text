@@ -157,7 +157,7 @@ impl<'a> TextRun<'a> {
 
     fn measure_horizontal_line(&self, line: &str) -> (u32, u32) {
         let mut line_width = 0u32;
-        let mut line_height = self.cells.ascii.height;
+        let mut line_height = self.cells.height;
 
         for ch in line.chars() {
             let cell = self.cells.for_char(ch);
@@ -169,7 +169,7 @@ impl<'a> TextRun<'a> {
     }
 
     fn measure_vertical_column(&self, column: &str) -> (u32, u32) {
-        let mut column_width = self.cells.ascii.width;
+        let mut column_width = self.cells.ascii_width;
         let mut column_height = 0u32;
 
         for ch in column.chars() {

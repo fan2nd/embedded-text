@@ -69,39 +69,42 @@ impl Alignment {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CellSizes {
-    pub ascii: Size,
-    pub cjk: Size,
+    pub height: u32,
+    pub ascii_width: u32,
+    pub cjk_width: u32,
 }
 
 impl CellSizes {
-    pub const fn new(ascii: Size, cjk: Size) -> Self {
-        assert!(
-            ascii.height == cjk.height,
-            "CellSizes ascii and cjk heights must match"
-        );
-        Self { ascii, cjk }
+    pub const fn new(height: u32, ascii_width: u32, cjk_width: u32) -> Self {
+        Self {
+            height,
+            ascii_width,
+            cjk_width,
+        }
     }
 
-    pub const fn with_ascii(mut self, ascii: Size) -> Self {
-        assert!(
-            self.cjk.height == 0 || ascii.height == self.cjk.height,
-            "CellSizes ascii and cjk heights must match"
-        );
-        self.ascii = ascii;
+    pub const fn with_height(mut self, height: u32) -> Self {
+        self.height = height;
         self
     }
 
-    pub const fn with_cjk(mut self, cjk: Size) -> Self {
-        assert!(
-            self.ascii.height == 0 || self.ascii.height == cjk.height,
-            "CellSizes ascii and cjk heights must match"
-        );
-        self.cjk = cjk;
+    pub const fn with_ascii_width(mut self, width: u32) -> Self {
+        self.ascii_width = width;
+        self
+    }
+
+    pub const fn with_cjk_width(mut self, width: u32) -> Self {
+        self.cjk_width = width;
         self
     }
 
     pub const fn for_char(self, ch: char) -> Size {
-        if ch.is_ascii() { self.ascii } else { self.cjk }
+        let width = if ch.is_ascii() {
+            self.ascii_width
+        } else {
+            self.cjk_width
+        };
+        Size::new(width, self.height)
     }
 }
 
@@ -116,18 +119,23 @@ impl<C: PixelColor> TextStyle<C> {
     pub const fn new(color: C) -> Self {
         Self {
             color,
-            cells: CellSizes::new(Size::new(0, 0), Size::new(0, 0)),
+            cells: CellSizes::new(0, 0, 0),
             alignment: Alignment::CENTER,
         }
     }
 
-    pub const fn ascii_cell(mut self, size: Size) -> Self {
-        self.cells = self.cells.with_ascii(size);
+    pub const fn height(mut self, height: u32) -> Self {
+        self.cells = self.cells.with_height(height);
         self
     }
 
-    pub const fn cjk_cell(mut self, size: Size) -> Self {
-        self.cells = self.cells.with_cjk(size);
+    pub const fn ascii_width(mut self, width: u32) -> Self {
+        self.cells = self.cells.with_ascii_width(width);
+        self
+    }
+
+    pub const fn cjk_width(mut self, width: u32) -> Self {
+        self.cells = self.cells.with_cjk_width(width);
         self
     }
 

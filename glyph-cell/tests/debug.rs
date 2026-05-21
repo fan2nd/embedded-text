@@ -51,8 +51,9 @@ const BITMAP: [u8; 7] = [
 
 fn style() -> TextStyle<BinaryColor> {
     TextStyle::new(BinaryColor::On)
-        .ascii_cell(Size::new(4, 5))
-        .cjk_cell(Size::new(6, 5))
+        .height(5)
+        .ascii_width(4)
+        .cjk_width(6)
         .align(Alignment::TOP_LEFT)
 }
 
@@ -203,8 +204,9 @@ fn design_debug_box_stays_centered_inside_layout_cell() {
         &FONT,
         "A",
         TextStyle::new(BinaryColor::On)
-            .ascii_cell(Size::new(7, 7))
-            .cjk_cell(Size::new(7, 7))
+            .height(7)
+            .ascii_width(7)
+            .cjk_width(7)
             .align(Alignment::TOP_LEFT),
     );
 
@@ -223,8 +225,9 @@ fn glyph_debug_box_uses_glyph_metrics_inside_centered_design_box() {
         &FONT,
         "A",
         TextStyle::new(BinaryColor::On)
-            .ascii_cell(Size::new(7, 7))
-            .cjk_cell(Size::new(7, 7))
+            .height(7)
+            .ascii_width(7)
+            .cjk_width(7)
             .align(Alignment::BOTTOM_RIGHT),
     );
 
@@ -243,8 +246,9 @@ fn horizontal_alignment_moves_layout_cells_between_lines() {
         &FONT,
         "AA\nA",
         TextStyle::new(BinaryColor::On)
-            .ascii_cell(Size::new(5, 5))
-            .cjk_cell(Size::new(5, 5))
+            .height(5)
+            .ascii_width(5)
+            .cjk_width(5)
             .align(Alignment::TOP_RIGHT),
     );
 

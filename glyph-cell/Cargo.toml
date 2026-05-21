@@ -15,4 +15,3 @@ debug = []
 
 [dev-dependencies]
 embedded-graphics = "0.8"
-trybuild = "1"

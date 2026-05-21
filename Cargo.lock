@@ -93,7 +93,6 @@ dependencies = [
  "embedded-graphics",
  "embedded-graphics-core",
  "glyph-cell-macros",
- "trybuild",
 ]
 
 [[package]]
