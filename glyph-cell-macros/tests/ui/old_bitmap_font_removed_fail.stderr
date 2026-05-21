@@ -1,0 +1,5 @@
+error[E0432]: unresolved import `glyph_cell::bitmap_font`
+ --> tests/ui/old_bitmap_font_removed_fail.rs:1:5
+  |
+1 | use glyph_cell::bitmap_font;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^ no `bitmap_font` in the root

@@ -42,11 +42,11 @@ fn source(size: u16, glyphs: &[BitmapGlyph]) -> Result<String, Box<dyn std::erro
 fn write_glyphs(out: &mut String, metrics: &[(&BitmapGlyph, u32)]) -> std::fmt::Result {
     writeln!(
         out,
-        "const GLYPHS: [embedded_bitmap_text::Glyph; {}] = [",
+        "const GLYPHS: [glyph_cell::Glyph; {}] = [",
         metrics.len()
     )?;
     for (glyph, bitmap_offset) in metrics {
-        writeln!(out, "    embedded_bitmap_text::Glyph {{")?;
+        writeln!(out, "    glyph_cell::Glyph {{")?;
         writeln!(out, "        bitmap_offset: {bitmap_offset},")?;
         writeln!(out, "        width: {},", glyph.width)?;
         writeln!(out, "        height: {},", glyph.height)?;
@@ -67,7 +67,7 @@ fn write_bitmap(out: &mut String, bitmap: &[u8]) -> std::fmt::Result {
 
 fn write_font(out: &mut String, size: u16, glyphs: &[BitmapGlyph]) -> std::fmt::Result {
     let index: String = glyphs.iter().map(|glyph| glyph.codepoint).collect();
-    writeln!(out, "embedded_bitmap_text::FontData {{")?;
+    writeln!(out, "glyph_cell::FontData {{")?;
     writeln!(out, "    index: {:?},", index)?;
     writeln!(out, "    char_size: {},", size as usize)?;
     writeln!(out, "    bitmap: &BITMAP,")?;

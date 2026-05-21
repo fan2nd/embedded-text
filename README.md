@@ -1,16 +1,16 @@
-# embedded-bitmap-text
+# glyph-cell
 
-`embedded-bitmap-text` is a small Rust workspace for drawing generated bitmap
+`glyph-cell` is a small Rust workspace for drawing generated bitmap
 fonts with [`embedded-graphics`](https://docs.rs/embedded-graphics).
 
 It is split into two root-level crates:
 
 ```text
-embedded-bitmap-text/         public no_std runtime crate
-embedded-bitmap-text-macros/  proc macro implementation crate
+glyph-cell/         public no_std runtime crate
+glyph-cell-macros/  proc macro implementation crate
 ```
 
-The public crate is `embedded-bitmap-text`. It re-exports `font_data!`, so normal
+The public crate is `glyph-cell`. It re-exports `font_data!`, so normal
 users do not need to depend on the macro crate directly.
 
 ## Model
@@ -49,16 +49,16 @@ from the same font settle into the design box consistently.
 
 ## Crates
 
-- `embedded-bitmap-text`: runtime types, drawing API, debug boxes, and macro
+- `glyph-cell`: runtime types, drawing API, debug boxes, and macro
   re-export.
-- `embedded-bitmap-text-macros`: `font_data!` implementation.
+- `glyph-cell-macros`: `font_data!` implementation.
 
 ## Checks
 
 ```bash
 cargo fmt --check
 cargo check --workspace --features debug
-cargo test -p embedded-bitmap-text --features debug
-cargo test -p embedded-bitmap-text-macros --lib
-cargo test -p embedded-bitmap-text-macros --test font_macro
+cargo test -p glyph-cell --features debug
+cargo test -p glyph-cell-macros --lib
+cargo test -p glyph-cell-macros --test font_macro
 ```

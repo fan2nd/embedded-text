@@ -1,8 +1,8 @@
-# embedded-bitmap-text
+# glyph-cell
 
-`embedded-bitmap-text` is the public runtime crate. It is `no_std`, integrates
+`glyph-cell` is the public runtime crate. It is `no_std`, integrates
 with `embedded-graphics`, and re-exports `font_data!` from
-`embedded-bitmap-text-macros`.
+`glyph-cell-macros`.
 
 ## API
 
@@ -18,7 +18,7 @@ text.
 ## Example
 
 ```rust
-use embedded_bitmap_text::{font_data, Alignment, DrawableText, FontData, TextStyle};
+use glyph_cell::{font_data, Alignment, DrawableText, FontData, TextStyle};
 use embedded_graphics::{pixelcolor::Rgb565, prelude::*};
 
 const FONT: FontData<'static> = font_data! {

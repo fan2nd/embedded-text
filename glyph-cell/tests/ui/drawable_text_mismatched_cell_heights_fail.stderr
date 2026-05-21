@@ -4,7 +4,7 @@ error[E0080]: evaluation panicked: CellSizes ascii and cjk heights must match
 14 |     TextStyle::new(BinaryColor::On).cells(Size::new(4, 8), Size::new(8, 9)),
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation of `_TEXT` failed inside this call
    |
-note: inside `embedded_bitmap_text::TextStyle::<BinaryColor>::cells`
+note: inside `glyph_cell::TextStyle::<BinaryColor>::cells`
   --> src/style.rs
    |
    |         self.cells = CellSizes::new(ascii, cjk);

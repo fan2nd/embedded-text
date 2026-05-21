@@ -1,4 +1,4 @@
-use embedded_bitmap_text::{font_data, FontData};
+use glyph_cell::{font_data, FontData};
 
 const _FONT18: FontData<'static> = font_data! {
     size: 18,

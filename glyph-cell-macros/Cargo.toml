@@ -1,5 +1,5 @@
 [package]
-name = "embedded-bitmap-text-macros"
+name = "glyph-cell-macros"
 version = "0.1.0"
 edition = "2024"
 license = "MIT OR Apache-2.0"
@@ -16,5 +16,5 @@ quote = "1"
 syn = { version = "2", features = ["full", "parsing"] }
 
 [dev-dependencies]
-embedded-bitmap-text = { path = "../embedded-bitmap-text" }
+glyph-cell = { path = "../glyph-cell" }
 trybuild = "1"

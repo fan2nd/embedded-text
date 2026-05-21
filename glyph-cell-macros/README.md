@@ -1,12 +1,12 @@
-# embedded-bitmap-text-macros
+# glyph-cell-macros
 
-`embedded-bitmap-text-macros` implements the `font_data!` procedural macro used
-by `embedded-bitmap-text`.
+`glyph-cell-macros` implements the `font_data!` procedural macro used
+by `glyph-cell`.
 
 Most users should import the macro from the public runtime crate instead:
 
 ```rust
-use embedded_bitmap_text::{font_data, FontData};
+use glyph_cell::{font_data, FontData};
 ```
 
 ## Macro Shape

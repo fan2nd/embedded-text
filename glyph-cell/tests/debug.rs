@@ -1,7 +1,7 @@
 #![cfg(feature = "debug")]
 
-use embedded_bitmap_text::*;
 use embedded_graphics::{mock_display::MockDisplay, pixelcolor::BinaryColor, prelude::*};
+use glyph_cell::*;
 
 const FONT: FontData<'static> = FontData {
     index: "AB你g",

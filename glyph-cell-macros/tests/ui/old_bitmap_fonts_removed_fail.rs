@@ -1,4 +1,4 @@
-use embedded_bitmap_text::bitmap_fonts;
+use glyph_cell::bitmap_fonts;
 
 fn main() {
     let _ = bitmap_fonts;

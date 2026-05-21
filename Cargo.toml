@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "embedded-bitmap-text",
-    "embedded-bitmap-text-macros",
+    "glyph-cell",
+    "glyph-cell-macros",
 ]
 resolver = "2"

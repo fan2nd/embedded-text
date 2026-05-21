@@ -1,5 +1,5 @@
 [package]
-name = "embedded-bitmap-text"
+name = "glyph-cell"
 version = "0.1.0"
 edition = "2024"
 license = "MIT OR Apache-2.0"
@@ -8,7 +8,7 @@ readme = "README.md"
 
 [dependencies]
 embedded-graphics = "0.8"
-embedded-bitmap-text-macros = { path = "../embedded-bitmap-text-macros" }
+glyph-cell-macros = { path = "../glyph-cell-macros" }
 
 [features]
 debug = []
