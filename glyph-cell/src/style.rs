@@ -82,6 +82,24 @@ impl CellSizes {
         Self { ascii, cjk }
     }
 
+    pub const fn with_ascii(mut self, ascii: Size) -> Self {
+        assert!(
+            self.cjk.height == 0 || ascii.height == self.cjk.height,
+            "CellSizes ascii and cjk heights must match"
+        );
+        self.ascii = ascii;
+        self
+    }
+
+    pub const fn with_cjk(mut self, cjk: Size) -> Self {
+        assert!(
+            self.ascii.height == 0 || self.ascii.height == cjk.height,
+            "CellSizes ascii and cjk heights must match"
+        );
+        self.cjk = cjk;
+        self
+    }
+
     pub const fn for_char(self, ch: char) -> Size {
         if ch.is_ascii() { self.ascii } else { self.cjk }
     }
@@ -103,8 +121,13 @@ impl<C: PixelColor> TextStyle<C> {
         }
     }
 
-    pub const fn cells(mut self, ascii: Size, cjk: Size) -> Self {
-        self.cells = CellSizes::new(ascii, cjk);
+    pub const fn ascii_cell(mut self, size: Size) -> Self {
+        self.cells = self.cells.with_ascii(size);
+        self
+    }
+
+    pub const fn cjk_cell(mut self, size: Size) -> Self {
+        self.cells = self.cells.with_cjk(size);
         self
     }
 

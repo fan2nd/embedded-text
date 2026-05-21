@@ -48,7 +48,9 @@ const BITMAP: [u8; 7] = [
 ];
 
 fn style(ascii: Size, cjk: Size) -> TextStyle<BinaryColor> {
-    TextStyle::new(BinaryColor::On).cells(ascii, cjk)
+    TextStyle::new(BinaryColor::On)
+        .ascii_cell(ascii)
+        .cjk_cell(cjk)
 }
 
 #[test]

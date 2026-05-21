@@ -30,7 +30,8 @@ const FONT: FontData<'static> = font_data! {
 };
 
 let style = TextStyle::new(Rgb565::WHITE)
-    .cells(Size::new(16, 32), Size::new(32, 32))
+    .ascii_cell(Size::new(16, 32))
+    .cjk_cell(Size::new(32, 32))
     .align(Alignment::CENTER);
 
 DrawableText::new(&FONT, "Hello\n你好", style)

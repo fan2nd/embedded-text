@@ -11,7 +11,9 @@ const FONT: FontData<'static> = FontData {
 const _TEXT: DrawableText<'static, BinaryColor> = DrawableText::new(
     &FONT,
     "",
-    TextStyle::new(BinaryColor::On).cells(Size::new(4, 8), Size::new(8, 9)),
+    TextStyle::new(BinaryColor::On)
+        .ascii_cell(Size::new(4, 8))
+        .cjk_cell(Size::new(8, 9)),
 )
 .at(Point::new(0, 0));
 
