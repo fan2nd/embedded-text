@@ -94,7 +94,11 @@ impl<C: PixelColor> TextStyle<C> {
     }
 }
 
-fn horizontal_offset(cell_width: u32, design_width: u32, alignment: HorizontalAlignment) -> i32 {
+pub(crate) fn horizontal_offset(
+    cell_width: u32,
+    design_width: u32,
+    alignment: HorizontalAlignment,
+) -> i32 {
     match alignment {
         HorizontalAlignment::Left => 0,
         HorizontalAlignment::Center => (cell_width as i32 - design_width as i32) / 2,
@@ -102,7 +106,11 @@ fn horizontal_offset(cell_width: u32, design_width: u32, alignment: HorizontalAl
     }
 }
 
-fn vertical_offset(cell_height: u32, design_height: u32, alignment: VerticalAlignment) -> i32 {
+pub(crate) fn vertical_offset(
+    cell_height: u32,
+    design_height: u32,
+    alignment: VerticalAlignment,
+) -> i32 {
     match alignment {
         VerticalAlignment::Top => 0,
         VerticalAlignment::Middle => (cell_height as i32 - design_height as i32) / 2,

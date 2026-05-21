@@ -54,7 +54,9 @@ const BITMAP: [u8; 7] = [
 ];
 
 fn style() -> TextStyle<BinaryColor> {
-    TextStyle::new(BinaryColor::On).cells(Size::new(4, 5), Size::new(6, 5))
+    TextStyle::new(BinaryColor::On)
+        .cells(Size::new(4, 5), Size::new(6, 5))
+        .align(Alignment::TOP_LEFT)
 }
 
 fn sample_text() -> DrawableText<'static, BinaryColor> {
@@ -191,5 +193,71 @@ fn draws_glyph_debug_boxes_for_each_vertical_character() {
         " ##       ",
         " ##       ",
         " ##       ",
+    ]);
+}
+
+#[test]
+fn design_debug_box_stays_centered_inside_layout_cell() {
+    let mut display = MockDisplay::<BinaryColor>::new();
+    display.set_allow_overdraw(true);
+    let text = DrawableText::new(
+        &FONT,
+        "A",
+        TextStyle::new(BinaryColor::On)
+            .cells(Size::new(7, 7), Size::new(7, 7))
+            .align(Alignment::TOP_LEFT),
+    );
+
+    text.draw_design_boxes(&mut display).unwrap();
+
+    display.assert_pattern(&[
+        "       ", " ##### ", " #   # ", " #   # ", " #   # ", " ##### ",
+    ]);
+}
+
+#[test]
+fn glyph_debug_box_uses_glyph_metrics_inside_centered_design_box() {
+    let mut display = MockDisplay::<BinaryColor>::new();
+    display.set_allow_overdraw(true);
+    let text = DrawableText::new(
+        &FONT,
+        "A",
+        TextStyle::new(BinaryColor::On)
+            .cells(Size::new(7, 7), Size::new(7, 7))
+            .align(Alignment::BOTTOM_RIGHT),
+    );
+
+    text.draw_glyph_boxes(&mut display).unwrap();
+
+    display.assert_pattern(&[
+        "       ", " ###   ", " # #   ", " # #   ", " # #   ", " ###   ",
+    ]);
+}
+
+#[test]
+fn horizontal_alignment_moves_layout_cells_between_lines() {
+    let mut display = MockDisplay::<BinaryColor>::new();
+    display.set_allow_overdraw(true);
+    let text = DrawableText::new(
+        &FONT,
+        "AA\nA",
+        TextStyle::new(BinaryColor::On)
+            .cells(Size::new(5, 5), Size::new(5, 5))
+            .align(Alignment::TOP_RIGHT),
+    );
+
+    text.draw_cell_boxes(&mut display).unwrap();
+
+    display.assert_pattern(&[
+        "##########",
+        "#   ##   #",
+        "#   ##   #",
+        "#   ##   #",
+        "##########",
+        "     #####",
+        "     #   #",
+        "     #   #",
+        "     #   #",
+        "     #####",
     ]);
 }

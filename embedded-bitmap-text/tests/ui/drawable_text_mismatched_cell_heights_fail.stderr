@@ -10,10 +10,15 @@ note: inside `embedded_bitmap_text::TextStyle::<BinaryColor>::cells`
    |         self.cells = CellSizes::new(ascii, cjk);
    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: inside `CellSizes::new`
-  --> src/style.rs
+  --> $RUST/core/src/panic.rs
+   |
+   |           $crate::panicking::panic_fmt($crate::const_format_args!($($t)+));
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the failure occurred here
+   |
+  ::: src/style.rs
    |
    | /         assert!(
    | |             ascii.height == cjk.height,
    | |             "CellSizes ascii and cjk heights must match"
    | |         );
-   | |_________^ the failure occurred here
+   | |_________- in this macro invocation

@@ -1,6 +1,9 @@
 use embedded_graphics::geometry::{Point, Size};
 
-use crate::{Alignment, CellSizes, FontData, Glyph};
+use crate::{
+    Alignment, CellSizes, FontData, Glyph,
+    style::{horizontal_offset, vertical_offset},
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum TextFlow {
@@ -49,10 +52,6 @@ impl<'a> TextRun<'a> {
             TextFlow::Horizontal => self.for_each_horizontal_cell(&mut visit),
             TextFlow::Vertical => self.for_each_vertical_cell(&mut visit),
         }
-    }
-
-    pub(crate) const fn alignment(&self) -> Alignment {
-        self.alignment
     }
 
     fn measure_horizontal(&self) -> Size {
@@ -109,20 +108,24 @@ impl<'a> TextRun<'a> {
         &self,
         visit: &mut impl FnMut(char, Point, Size) -> Result<(), E>,
     ) -> Result<(), E> {
-        let mut pen = self.start;
-        let mut line_height = self.cells.ascii.height;
+        let measure = self.measure_horizontal();
+        let mut pen_y = self.start.y;
 
-        for ch in self.text.chars() {
-            if ch == '\n' {
-                pen.x = self.start.x;
-                pen.y += line_height as i32;
-                line_height = self.cells.ascii.height;
-            } else {
+        for line in self.text.split('\n') {
+            let (line_width, line_height) = self.measure_horizontal_line(line);
+            let mut pen = Point::new(
+                self.start.x
+                    + horizontal_offset(measure.width, line_width, self.alignment.horizontal),
+                pen_y,
+            );
+
+            for ch in line.chars() {
                 let cell = self.cells.for_char(ch);
-                line_height = line_height.max(cell.height);
                 visit(ch, pen, cell)?;
                 pen.x += cell.width as i32;
             }
+
+            pen_y += line_height as i32;
         }
 
         Ok(())
@@ -132,23 +135,52 @@ impl<'a> TextRun<'a> {
         &self,
         visit: &mut impl FnMut(char, Point, Size) -> Result<(), E>,
     ) -> Result<(), E> {
-        let mut pen = self.start;
-        let mut column_width = self.cells.ascii.width;
+        let measure = self.measure_vertical();
+        let mut pen_x = self.start.x;
 
-        for ch in self.text.chars() {
-            if ch == '\n' {
-                pen.x += column_width as i32;
-                pen.y = self.start.y;
-                column_width = self.cells.ascii.width;
-            } else {
+        for column in self.text.split('\n') {
+            let (column_width, column_height) = self.measure_vertical_column(column);
+            let mut pen_y = self.start.y
+                + vertical_offset(measure.height, column_height, self.alignment.vertical);
+
+            for ch in column.chars() {
                 let cell = self.cells.for_char(ch);
-                column_width = column_width.max(cell.width);
-                visit(ch, pen, cell)?;
-                pen.y += cell.height as i32;
+                let cell_x =
+                    pen_x + horizontal_offset(column_width, cell.width, self.alignment.horizontal);
+                visit(ch, Point::new(cell_x, pen_y), cell)?;
+                pen_y += cell.height as i32;
             }
+
+            pen_x += column_width as i32;
         }
 
         Ok(())
+    }
+
+    fn measure_horizontal_line(&self, line: &str) -> (u32, u32) {
+        let mut line_width = 0u32;
+        let mut line_height = self.cells.ascii.height;
+
+        for ch in line.chars() {
+            let cell = self.cells.for_char(ch);
+            line_width = line_width.saturating_add(cell.width);
+            line_height = line_height.max(cell.height);
+        }
+
+        (line_width, line_height)
+    }
+
+    fn measure_vertical_column(&self, column: &str) -> (u32, u32) {
+        let mut column_width = self.cells.ascii.width;
+        let mut column_height = 0u32;
+
+        for ch in column.chars() {
+            let cell = self.cells.for_char(ch);
+            column_width = column_width.max(cell.width);
+            column_height = column_height.saturating_add(cell.height);
+        }
+
+        (column_width, column_height)
     }
 }
 
@@ -156,10 +188,9 @@ pub(crate) fn design_box_bounds(
     font: &FontData<'_>,
     cell_origin: Point,
     cell: Size,
-    alignment: Alignment,
 ) -> (Point, Size) {
     let size = Size::new(font.char_size as u32, font.char_size as u32);
-    let (x, y) = alignment.offset(cell, size);
+    let (x, y) = Alignment::CENTER.offset(cell, size);
     (cell_origin + Point::new(x, y), size)
 }
 
@@ -169,10 +200,9 @@ pub(crate) fn glyph_box_bounds(
     glyph: &Glyph,
     cell_origin: Point,
     cell: Size,
-    alignment: Alignment,
 ) -> (Point, Size) {
     (
-        glyph_origin(font, glyph, cell_origin, cell, alignment),
+        glyph_origin(font, glyph, cell_origin, cell),
         Size::new(glyph.width as u32, glyph.height as u32),
     )
 }
@@ -182,9 +212,8 @@ pub(crate) fn glyph_origin(
     glyph: &Glyph,
     cell_origin: Point,
     cell: Size,
-    alignment: Alignment,
 ) -> Point {
-    let (design_origin, _) = design_box_bounds(font, cell_origin, cell, alignment);
+    let (design_origin, _) = design_box_bounds(font, cell_origin, cell);
     Point::new(
         design_origin.x + glyph.x_offset as i32,
         design_origin.y + font.char_size as i32 - glyph.y_offset as i32,

@@ -128,7 +128,7 @@ where
 {
     run.for_each_cell(|ch, cell_origin, cell| {
         if let Some(glyph) = font.glyph(ch) {
-            let origin = glyph_origin(font, glyph, cell_origin, cell, run.alignment());
+            let origin = glyph_origin(font, glyph, cell_origin, cell);
             draw_glyph(target, font, glyph, origin, color)?;
         }
         Ok(())

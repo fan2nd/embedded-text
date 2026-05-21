@@ -100,7 +100,11 @@ fn draws_vertical_text_top_to_bottom_then_left_to_right() {
 #[test]
 fn draws_vertical_multiline_text_in_columns() {
     let mut display = MockDisplay::<BinaryColor>::new();
-    let text = VerticalDrawableText::new(&FONT, "AB\nA", style(Size::new(4, 5), Size::new(4, 5)));
+    let text = VerticalDrawableText::new(
+        &FONT,
+        "AB\nA",
+        style(Size::new(4, 5), Size::new(4, 5)).align(Alignment::TOP_LEFT),
+    );
 
     text.draw(&mut display).unwrap();
 
@@ -143,7 +147,7 @@ fn centers_font_design_square_inside_larger_cell() {
 }
 
 #[test]
-fn aligns_horizontal_text_design_square_to_top_left() {
+fn horizontal_alignment_does_not_move_design_square_inside_layout_cell() {
     let mut display = MockDisplay::<BinaryColor>::new();
     let text = DrawableText::new(
         &FONT,
@@ -154,11 +158,13 @@ fn aligns_horizontal_text_design_square_to_top_left() {
 
     text.draw(&mut display).unwrap();
 
-    display.assert_pattern(&[" #     ", "# #    ", "###    ", "# #    ", "# #    "]);
+    display.assert_pattern(&[
+        "       ", "  #    ", " # #   ", " ###   ", " # #   ", " # #   ",
+    ]);
 }
 
 #[test]
-fn aligns_horizontal_text_design_square_to_bottom_right() {
+fn horizontal_alignment_keeps_design_square_centered_in_layout_cell() {
     let mut display = MockDisplay::<BinaryColor>::new();
     let text = DrawableText::new(
         &FONT,
@@ -170,12 +176,12 @@ fn aligns_horizontal_text_design_square_to_bottom_right() {
     text.draw(&mut display).unwrap();
 
     display.assert_pattern(&[
-        "       ", "       ", "   #   ", "  # #  ", "  ###  ", "  # #  ", "  # #  ",
+        "       ", "  #    ", " # #   ", " ###   ", " # #   ", " # #   ",
     ]);
 }
 
 #[test]
-fn aligns_vertical_text_design_square_to_bottom_right() {
+fn vertical_alignment_keeps_design_square_centered_in_layout_cell() {
     let mut display = MockDisplay::<BinaryColor>::new();
     let text = VerticalDrawableText::new(
         &FONT,
@@ -187,7 +193,7 @@ fn aligns_vertical_text_design_square_to_bottom_right() {
     text.draw(&mut display).unwrap();
 
     display.assert_pattern(&[
-        "       ", "       ", "   #   ", "  # #  ", "  ###  ", "  # #  ", "  # #  ",
+        "       ", "  #    ", " # #   ", " ###   ", " # #   ", " # #   ",
     ]);
 }
 
