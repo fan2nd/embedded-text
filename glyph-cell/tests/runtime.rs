@@ -52,6 +52,7 @@ fn style(ascii: Size, cjk: Size) -> TextStyle<BinaryColor> {
         .height(ascii.height)
         .ascii_width(ascii.width)
         .cjk_width(cjk.width)
+        .align(Alignment::TOP_LEFT)
 }
 
 #[test]
@@ -172,7 +173,7 @@ fn horizontal_alignment_keeps_design_square_centered_in_layout_cell() {
         "A",
         style(Size::new(7, 7), Size::new(7, 7)).align(Alignment::BOTTOM_RIGHT),
     )
-    .at(Point::new(0, 0));
+    .at(Point::new(7, 7));
 
     text.draw(&mut display).unwrap();
 
@@ -190,13 +191,30 @@ fn vertical_alignment_keeps_design_square_centered_in_layout_cell() {
         style(Size::new(7, 7), Size::new(7, 7)).align(Alignment::BOTTOM_RIGHT),
     )
     .vertical()
-    .at(Point::new(0, 0));
+    .at(Point::new(7, 7));
 
     text.draw(&mut display).unwrap();
 
     display.assert_pattern(&[
         "       ", "  #    ", " # #   ", " ###   ", " # #   ", " # #   ",
     ]);
+}
+
+#[test]
+fn bottom_right_alignment_anchors_whole_box_above_left_of_point() {
+    let text = DrawableText::new(
+        &FONT,
+        "A你\nB",
+        style(Size::new(4, 5), Size::new(6, 5)).align(Alignment::BOTTOM_RIGHT),
+    )
+    .at(Point::new(20, 30));
+
+    assert_eq!(text.measure(), Size::new(10, 10));
+    assert_eq!(text.bounding_box().top_left, Point::new(10, 20));
+    assert_eq!(
+        text.bounding_box().bottom_right().unwrap(),
+        Point::new(19, 29)
+    );
 }
 
 #[test]

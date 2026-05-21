@@ -41,6 +41,12 @@ impl<'a> TextRun<'a> {
         }
     }
 
+    pub(crate) fn top_left(&self) -> Point {
+        let measure = self.measure();
+        let (x, y) = self.alignment.offset(measure, Size::zero());
+        self.start - Point::new(x, y)
+    }
+
     pub(crate) fn for_each_cell<E>(
         &self,
         mut visit: impl FnMut(char, Point, Size) -> Result<(), E>,
@@ -106,12 +112,13 @@ impl<'a> TextRun<'a> {
         visit: &mut impl FnMut(char, Point, Size) -> Result<(), E>,
     ) -> Result<(), E> {
         let measure = self.measure_horizontal();
-        let mut pen_y = self.start.y;
+        let top_left = self.top_left();
+        let mut pen_y = top_left.y;
 
         for line in self.text.split('\n') {
             let (line_width, line_height) = self.measure_horizontal_line(line);
             let mut pen = Point::new(
-                self.start.x + self.alignment.horizontal.offset(measure.width, line_width),
+                top_left.x + self.alignment.horizontal.offset(measure.width, line_width),
                 pen_y,
             );
 
@@ -132,11 +139,12 @@ impl<'a> TextRun<'a> {
         visit: &mut impl FnMut(char, Point, Size) -> Result<(), E>,
     ) -> Result<(), E> {
         let measure = self.measure_vertical();
-        let mut pen_x = self.start.x;
+        let top_left = self.top_left();
+        let mut pen_x = top_left.x;
 
         for column in self.text.split('\n') {
             let (column_width, column_height) = self.measure_vertical_column(column);
-            let mut pen_y = self.start.y
+            let mut pen_y = top_left.y
                 + self
                     .alignment
                     .vertical

@@ -229,7 +229,8 @@ fn glyph_debug_box_uses_glyph_metrics_inside_centered_design_box() {
             .ascii_width(7)
             .cjk_width(7)
             .align(Alignment::BOTTOM_RIGHT),
-    );
+    )
+    .at(Point::new(7, 7));
 
     text.draw_glyph_boxes(&mut display).unwrap();
 
@@ -250,7 +251,8 @@ fn horizontal_alignment_moves_layout_cells_between_lines() {
             .ascii_width(5)
             .cjk_width(5)
             .align(Alignment::TOP_RIGHT),
-    );
+    )
+    .at(Point::new(10, 0));
 
     text.draw_cell_boxes(&mut display).unwrap();
 

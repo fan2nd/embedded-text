@@ -3,6 +3,7 @@ use embedded_graphics_core::{
     draw_target::DrawTarget,
     geometry::{Point, Size},
     pixelcolor::PixelColor,
+    primitives::Rectangle,
 };
 
 use crate::{
@@ -47,6 +48,10 @@ impl<'a, C: PixelColor> DrawableText<'a, C> {
 
     pub fn measure(&self) -> Size {
         self.run().measure()
+    }
+
+    pub fn bounding_box(&self) -> Rectangle {
+        Rectangle::new(self.run().top_left(), self.measure())
     }
 
     pub(crate) fn run(&self) -> TextRun<'a> {
