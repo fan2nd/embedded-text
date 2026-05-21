@@ -15,7 +15,6 @@ const GLYPHS: [Glyph; 4] = [
         height: 5,
         x_offset: 0,
         y_offset: 5,
-        x_advance: 4,
     },
     Glyph {
         bitmap_offset: 2,
@@ -23,7 +22,6 @@ const GLYPHS: [Glyph; 4] = [
         height: 5,
         x_offset: 0,
         y_offset: 5,
-        x_advance: 4,
     },
     Glyph {
         bitmap_offset: 4,
@@ -31,7 +29,6 @@ const GLYPHS: [Glyph; 4] = [
         height: 5,
         x_offset: 0,
         y_offset: 5,
-        x_advance: 2,
     },
     Glyph {
         bitmap_offset: 6,
@@ -39,7 +36,6 @@ const GLYPHS: [Glyph; 4] = [
         height: 1,
         x_offset: 0,
         y_offset: 1,
-        x_advance: 1,
     },
 ];
 
@@ -80,7 +76,8 @@ fn measures_multiline_horizontal_text_by_longest_line() {
 
 #[test]
 fn measures_vertical_text_by_columns() {
-    let text = VerticalDrawableText::new(&FONT, "A你\nBB", style(Size::new(4, 5), Size::new(6, 5)));
+    let text =
+        DrawableText::new(&FONT, "A你\nBB", style(Size::new(4, 5), Size::new(6, 5))).vertical();
 
     assert_eq!(text.measure(), Size::new(10, 10));
 }
@@ -88,7 +85,7 @@ fn measures_vertical_text_by_columns() {
 #[test]
 fn draws_vertical_text_top_to_bottom_then_left_to_right() {
     let mut display = MockDisplay::<BinaryColor>::new();
-    let text = VerticalDrawableText::new(&FONT, "AB", style(Size::new(4, 5), Size::new(4, 5)));
+    let text = DrawableText::new(&FONT, "AB", style(Size::new(4, 5), Size::new(4, 5))).vertical();
 
     text.draw(&mut display).unwrap();
 
@@ -100,11 +97,12 @@ fn draws_vertical_text_top_to_bottom_then_left_to_right() {
 #[test]
 fn draws_vertical_multiline_text_in_columns() {
     let mut display = MockDisplay::<BinaryColor>::new();
-    let text = VerticalDrawableText::new(
+    let text = DrawableText::new(
         &FONT,
         "AB\nA",
         style(Size::new(4, 5), Size::new(4, 5)).align(Alignment::TOP_LEFT),
-    );
+    )
+    .vertical();
 
     text.draw(&mut display).unwrap();
 
@@ -183,11 +181,12 @@ fn horizontal_alignment_keeps_design_square_centered_in_layout_cell() {
 #[test]
 fn vertical_alignment_keeps_design_square_centered_in_layout_cell() {
     let mut display = MockDisplay::<BinaryColor>::new();
-    let text = VerticalDrawableText::new(
+    let text = DrawableText::new(
         &FONT,
         "A",
         style(Size::new(7, 7), Size::new(7, 7)).align(Alignment::BOTTOM_RIGHT),
     )
+    .vertical()
     .at(Point::new(0, 0));
 
     text.draw(&mut display).unwrap();

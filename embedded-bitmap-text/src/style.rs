@@ -7,11 +7,31 @@ pub enum HorizontalAlignment {
     Right,
 }
 
+impl HorizontalAlignment {
+    pub(crate) fn offset(self, outer_width: u32, inner_width: u32) -> i32 {
+        match self {
+            Self::Left => 0,
+            Self::Center => (outer_width as i32 - inner_width as i32) / 2,
+            Self::Right => outer_width as i32 - inner_width as i32,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VerticalAlignment {
     Top,
     Middle,
     Bottom,
+}
+
+impl VerticalAlignment {
+    pub(crate) fn offset(self, outer_height: u32, inner_height: u32) -> i32 {
+        match self {
+            Self::Top => 0,
+            Self::Middle => (outer_height as i32 - inner_height as i32) / 2,
+            Self::Bottom => outer_height as i32 - inner_height as i32,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -41,8 +61,8 @@ impl Alignment {
 
     pub(crate) fn offset(self, outer: Size, inner: Size) -> (i32, i32) {
         (
-            horizontal_offset(outer.width, inner.width, self.horizontal),
-            vertical_offset(outer.height, inner.height, self.vertical),
+            self.horizontal.offset(outer.width, inner.width),
+            self.vertical.offset(outer.height, inner.height),
         )
     }
 }
@@ -91,29 +111,5 @@ impl<C: PixelColor> TextStyle<C> {
     pub const fn align(mut self, alignment: Alignment) -> Self {
         self.alignment = alignment;
         self
-    }
-}
-
-pub(crate) fn horizontal_offset(
-    cell_width: u32,
-    design_width: u32,
-    alignment: HorizontalAlignment,
-) -> i32 {
-    match alignment {
-        HorizontalAlignment::Left => 0,
-        HorizontalAlignment::Center => (cell_width as i32 - design_width as i32) / 2,
-        HorizontalAlignment::Right => cell_width as i32 - design_width as i32,
-    }
-}
-
-pub(crate) fn vertical_offset(
-    cell_height: u32,
-    design_height: u32,
-    alignment: VerticalAlignment,
-) -> i32 {
-    match alignment {
-        VerticalAlignment::Top => 0,
-        VerticalAlignment::Middle => (cell_height as i32 - design_height as i32) / 2,
-        VerticalAlignment::Bottom => cell_height as i32 - design_height as i32,
     }
 }

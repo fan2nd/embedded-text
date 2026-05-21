@@ -1,17 +1,10 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum BitsPerPixel {
-    Bpp1,
-    Bpp4,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Glyph {
     pub bitmap_offset: u32,
     pub width: u16,
     pub height: u16,
     pub x_offset: i16,
     pub y_offset: i16,
-    pub x_advance: i16,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

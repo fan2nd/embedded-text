@@ -1,19 +1,13 @@
 use fontdue::Font;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) enum GlyphBitmap {
-    Bpp1(Vec<bool>),
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct BitmapGlyph {
     pub codepoint: char,
     pub width: u16,
     pub height: u16,
     pub x_offset: i16,
     pub y_offset: i16,
-    pub x_advance: i16,
-    pub bitmap: GlyphBitmap,
+    pub bitmap: Vec<bool>,
 }
 
 pub(crate) fn rasterize_block(
@@ -45,8 +39,7 @@ fn rasterize_glyph(font: &Font, codepoint: char, size: u16) -> BitmapGlyph {
         height,
         x_offset: centered_offset(size, width),
         y_offset: (metrics.height as i32 + metrics.ymin) as i16,
-        x_advance: metrics.advance_width.ceil().max(width as f32) as i16,
-        bitmap: GlyphBitmap::Bpp1(pixels),
+        bitmap: pixels,
     }
 }
 
@@ -95,7 +88,7 @@ fn glyph_bottom(design_size: i32, glyph: &BitmapGlyph) -> i32 {
 
 #[cfg(test)]
 mod tests {
-    use super::{BitmapGlyph, GlyphBitmap, centered_offset, y_offset_delta};
+    use super::{BitmapGlyph, centered_offset, y_offset_delta};
 
     #[test]
     fn centers_glyph_bitmap_in_design_box() {
@@ -126,8 +119,7 @@ mod tests {
             height,
             x_offset: 0,
             y_offset,
-            x_advance: 1,
-            bitmap: GlyphBitmap::Bpp1(vec![true; height as usize]),
+            bitmap: vec![true; height as usize],
         }
     }
 }

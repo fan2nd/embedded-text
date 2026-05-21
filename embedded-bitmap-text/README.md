@@ -9,9 +9,8 @@ with `embedded-graphics`, and re-exports `font_data!` from
 - `font_data!`: rasterize one or more font files into `FontData`.
 - `FontData`: static glyph index, bitmap bytes, glyph metrics, and design size.
 - `Glyph`: one bitmap glyph's metrics and bitmap offset.
-- `TextStyle`: color, ASCII/CJK cell sizes, and 3x3 design-box alignment.
-- `DrawableText`: horizontal text drawing.
-- `VerticalDrawableText`: vertical text drawing.
+- `TextStyle`: color, ASCII/CJK cell sizes, and 3x3 layout alignment.
+- `DrawableText`: horizontal or vertical text drawing.
 
 Enable the `debug` feature to draw cell, design, or glyph boxes around rendered
 text.
@@ -19,9 +18,7 @@ text.
 ## Example
 
 ```rust
-use embedded_bitmap_text::{
-    font_data, Alignment, DrawableText, FontData, TextStyle, VerticalDrawableText,
-};
+use embedded_bitmap_text::{font_data, Alignment, DrawableText, FontData, TextStyle};
 use embedded_graphics::{pixelcolor::Rgb565, prelude::*};
 
 const FONT: FontData<'static> = font_data! {
@@ -40,7 +37,8 @@ DrawableText::new(&FONT, "Hello\n你好", style)
     .at(Point::new(8, 8))
     .draw(&mut display)?;
 
-VerticalDrawableText::new(&FONT, "Hello\n你好", style)
+DrawableText::new(&FONT, "Hello\n你好", style)
+    .vertical()
     .at(Point::new(72, 8))
     .draw(&mut display)?;
 ```

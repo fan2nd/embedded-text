@@ -17,7 +17,6 @@ const GLYPHS: [Glyph; 4] = [
         height: 5,
         x_offset: 0,
         y_offset: 5,
-        x_advance: 4,
     },
     Glyph {
         bitmap_offset: 2,
@@ -25,7 +24,6 @@ const GLYPHS: [Glyph; 4] = [
         height: 5,
         x_offset: 0,
         y_offset: 5,
-        x_advance: 4,
     },
     Glyph {
         bitmap_offset: 4,
@@ -33,7 +31,6 @@ const GLYPHS: [Glyph; 4] = [
         height: 5,
         x_offset: 0,
         y_offset: 5,
-        x_advance: 2,
     },
     Glyph {
         bitmap_offset: 6,
@@ -41,7 +38,6 @@ const GLYPHS: [Glyph; 4] = [
         height: 1,
         x_offset: 0,
         y_offset: 1,
-        x_advance: 1,
     },
 ];
 
@@ -63,8 +59,10 @@ fn sample_text() -> DrawableText<'static, BinaryColor> {
     DrawableText::new(&FONT, "A你\nB", style()).at(Point::new(1, 1))
 }
 
-fn sample_vertical_text() -> VerticalDrawableText<'static, BinaryColor> {
-    VerticalDrawableText::new(&FONT, "A你\nB", style()).at(Point::new(1, 1))
+fn sample_vertical_text() -> DrawableText<'static, BinaryColor> {
+    DrawableText::new(&FONT, "A你\nB", style())
+        .vertical()
+        .at(Point::new(1, 1))
 }
 
 #[test]

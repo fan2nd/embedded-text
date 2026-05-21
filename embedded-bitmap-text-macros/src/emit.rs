@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use crate::raster::{BitmapGlyph, GlyphBitmap};
+use crate::raster::BitmapGlyph;
 
 pub(crate) fn font_expression(
     size: u16,
@@ -27,7 +27,7 @@ fn source(size: u16, glyphs: &[BitmapGlyph]) -> Result<String, Box<dyn std::erro
         .iter()
         .map(|glyph| {
             let offset = bitmap.len() as u32;
-            pack(&glyph.bitmap, &mut bitmap);
+            pack_bpp1(&glyph.bitmap, &mut bitmap);
             (glyph, offset)
         })
         .collect::<Vec<_>>();
@@ -52,7 +52,6 @@ fn write_glyphs(out: &mut String, metrics: &[(&BitmapGlyph, u32)]) -> std::fmt::
         writeln!(out, "        height: {},", glyph.height)?;
         writeln!(out, "        x_offset: {},", glyph.x_offset)?;
         writeln!(out, "        y_offset: {},", glyph.y_offset)?;
-        writeln!(out, "        x_advance: {},", glyph.x_advance)?;
         writeln!(out, "    }},")?;
     }
     writeln!(out, "];\n")
@@ -74,12 +73,6 @@ fn write_font(out: &mut String, size: u16, glyphs: &[BitmapGlyph]) -> std::fmt::
     writeln!(out, "    bitmap: &BITMAP,")?;
     writeln!(out, "    glyphs: &GLYPHS,")?;
     writeln!(out, "}}")
-}
-
-fn pack(bitmap: &GlyphBitmap, out: &mut Vec<u8>) {
-    match bitmap {
-        GlyphBitmap::Bpp1(pixels) => pack_bpp1(pixels, out),
-    }
 }
 
 fn pack_bpp1(pixels: &[bool], out: &mut Vec<u8>) {

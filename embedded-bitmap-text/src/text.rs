@@ -16,6 +16,7 @@ pub struct DrawableText<'a, C: PixelColor> {
     pub text: &'a str,
     pub start_point: Point,
     pub style: TextStyle<C>,
+    flow: TextFlow,
 }
 
 impl<'a, C: PixelColor> DrawableText<'a, C> {
@@ -25,11 +26,22 @@ impl<'a, C: PixelColor> DrawableText<'a, C> {
             text,
             start_point: Point::zero(),
             style,
+            flow: TextFlow::Horizontal,
         }
     }
 
     pub const fn at(mut self, start_point: Point) -> Self {
         self.start_point = start_point;
+        self
+    }
+
+    pub const fn horizontal(mut self) -> Self {
+        self.flow = TextFlow::Horizontal;
+        self
+    }
+
+    pub const fn vertical(mut self) -> Self {
+        self.flow = TextFlow::Vertical;
         self
     }
 
@@ -43,65 +55,12 @@ impl<'a, C: PixelColor> DrawableText<'a, C> {
             self.start_point,
             self.style.cells,
             self.style.alignment,
-            TextFlow::Horizontal,
-        )
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct VerticalDrawableText<'a, C: PixelColor> {
-    pub font_data: &'a FontData<'a>,
-    pub text: &'a str,
-    pub start_point: Point,
-    pub style: TextStyle<C>,
-}
-
-impl<'a, C: PixelColor> VerticalDrawableText<'a, C> {
-    pub const fn new(font_data: &'a FontData<'a>, text: &'a str, style: TextStyle<C>) -> Self {
-        Self {
-            font_data,
-            text,
-            start_point: Point::zero(),
-            style,
-        }
-    }
-
-    pub const fn at(mut self, start_point: Point) -> Self {
-        self.start_point = start_point;
-        self
-    }
-
-    pub fn measure(&self) -> Size {
-        self.run().measure()
-    }
-
-    pub(crate) fn run(&self) -> TextRun<'a> {
-        TextRun::new(
-            self.text,
-            self.start_point,
-            self.style.cells,
-            self.style.alignment,
-            TextFlow::Vertical,
+            self.flow,
         )
     }
 }
 
 impl<'a, C> Drawable for DrawableText<'a, C>
-where
-    C: PixelColor,
-{
-    type Color = C;
-    type Output = ();
-
-    fn draw<D>(&self, target: &mut D) -> Result<(), D::Error>
-    where
-        D: DrawTarget<Color = C>,
-    {
-        draw_text_run(target, self.font_data, self.run(), self.style.color)
-    }
-}
-
-impl<'a, C> Drawable for VerticalDrawableText<'a, C>
 where
     C: PixelColor,
 {

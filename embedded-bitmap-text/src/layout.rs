@@ -1,9 +1,6 @@
 use embedded_graphics::geometry::{Point, Size};
 
-use crate::{
-    Alignment, CellSizes, FontData, Glyph,
-    style::{horizontal_offset, vertical_offset},
-};
+use crate::{Alignment, CellSizes, FontData, Glyph};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum TextFlow {
@@ -114,8 +111,7 @@ impl<'a> TextRun<'a> {
         for line in self.text.split('\n') {
             let (line_width, line_height) = self.measure_horizontal_line(line);
             let mut pen = Point::new(
-                self.start.x
-                    + horizontal_offset(measure.width, line_width, self.alignment.horizontal),
+                self.start.x + self.alignment.horizontal.offset(measure.width, line_width),
                 pen_y,
             );
 
@@ -141,12 +137,14 @@ impl<'a> TextRun<'a> {
         for column in self.text.split('\n') {
             let (column_width, column_height) = self.measure_vertical_column(column);
             let mut pen_y = self.start.y
-                + vertical_offset(measure.height, column_height, self.alignment.vertical);
+                + self
+                    .alignment
+                    .vertical
+                    .offset(measure.height, column_height);
 
             for ch in column.chars() {
                 let cell = self.cells.for_char(ch);
-                let cell_x =
-                    pen_x + horizontal_offset(column_width, cell.width, self.alignment.horizontal);
+                let cell_x = pen_x + self.alignment.horizontal.offset(column_width, cell.width);
                 visit(ch, Point::new(cell_x, pen_y), cell)?;
                 pen_y += cell.height as i32;
             }

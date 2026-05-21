@@ -6,7 +6,7 @@ use embedded_graphics::{
 };
 
 use crate::{
-    DrawableText, FontData, VerticalDrawableText,
+    DrawableText, FontData,
     layout::{TextRun, design_box_bounds, glyph_box_bounds},
 };
 
@@ -18,36 +18,6 @@ pub enum DebugBoxKind {
 }
 
 impl<'a, C: PixelColor> DrawableText<'a, C> {
-    pub fn draw_debug_boxes<D>(&self, target: &mut D, kind: DebugBoxKind) -> Result<(), D::Error>
-    where
-        D: DrawTarget<Color = C>,
-    {
-        draw_text_boxes(target, self.font_data, self.run(), self.style.color, kind)
-    }
-
-    pub fn draw_design_boxes<D>(&self, target: &mut D) -> Result<(), D::Error>
-    where
-        D: DrawTarget<Color = C>,
-    {
-        self.draw_debug_boxes(target, DebugBoxKind::Design)
-    }
-
-    pub fn draw_cell_boxes<D>(&self, target: &mut D) -> Result<(), D::Error>
-    where
-        D: DrawTarget<Color = C>,
-    {
-        self.draw_debug_boxes(target, DebugBoxKind::Cell)
-    }
-
-    pub fn draw_glyph_boxes<D>(&self, target: &mut D) -> Result<(), D::Error>
-    where
-        D: DrawTarget<Color = C>,
-    {
-        self.draw_debug_boxes(target, DebugBoxKind::Glyph)
-    }
-}
-
-impl<'a, C: PixelColor> VerticalDrawableText<'a, C> {
     pub fn draw_debug_boxes<D>(&self, target: &mut D, kind: DebugBoxKind) -> Result<(), D::Error>
     where
         D: DrawTarget<Color = C>,

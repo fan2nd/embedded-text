@@ -25,20 +25,24 @@ and contains:
 - packed bitmap bytes
 - per-glyph metrics
 
-`DrawableText` and `VerticalDrawableText` are runtime objects. They hold:
+`DrawableText` is the runtime drawing object. It holds:
 
 - a `&FontData`
 - text to render
 - ASCII and CJK cell sizes
-- 3x3 design-box alignment
+- 3x3 layout alignment for shorter lines or columns
 - start point
 - foreground color
 
 For each character, drawing is a three-step placement:
 
 1. Choose the ASCII or CJK cell and advance by that cell.
-2. Align the square `char_size x char_size` design box inside the cell.
+2. Center the square `char_size x char_size` design box inside the cell.
 3. Place the actual glyph bitmap inside the design box using glyph metrics.
+
+Alignment moves layout cells within the measured text area. It does not move
+the design box within a cell, so glyph metrics remain anchored to a centered
+design box.
 
 The macro derives one shared extra vertical offset per font block, so glyphs
 from the same font settle into the design box consistently.
